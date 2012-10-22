@@ -1,0 +1,9 @@
+{
+    "folders":
+    [
+        {
+            "path": "/home/elliott/Dropbox/Uni/Docula",
+            "file_exclude_patterns": [".gitignore", "*.sublime-*"]
+        }
+    ]
+}
