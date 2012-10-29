@@ -1,0 +1,67 @@
+##
+## A C grammar defined in treetop, a Ruby DSL.
+##
+## @file
+## @author Elliott Hillary <ejh67@cam.ac.uk>
+## @date 2012-10-29
+## @license MIT
+##
+
+grammar C
+  rule start
+    (
+    _ directive
+    / _ docstring
+    / _ comment
+    / WHITESPACE
+    )+
+  end
+
+# Directive
+  rule directive
+    '#' ( !EOL .)* EOL
+  end
+
+
+# Docstrings
+  rule multiline_docstring
+    '/**'
+    (
+      !'*/'
+      (. / EOL)
+    )*
+    '*/'
+  end
+  rule docstring
+    '///' ( !EOL .)* EOL
+    / '## ' ( !EOL .)* EOL
+    / multiline_docstring
+  end
+
+
+# Comments
+  rule multiline_comment
+    '/*'
+    (
+      !'*/'
+      (. / EOL)
+    )*
+    '*/'
+  end
+  rule comment
+    '//' ( !EOL .)* EOL
+    / '# ' ( !EOL .)* EOL
+    / multiline_comment
+  end
+
+# Utility Rules
+  rule WHITESPACE
+    ([ \n\r\t\f\v])+
+  end
+  rule _
+    WHITESPACE?
+  end
+  rule EOL
+    [\n\r(\r\n)]
+  end
+end
