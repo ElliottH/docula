@@ -64,4 +64,59 @@ grammar C
   rule EOL
     [\n\r(\r\n)]
   end
+  rule RESERVED
+    'auto' / 'break' / 'case' / 'char' / 'const' / 'continue' / 'default' /
+    'do' / 'double' / 'else' / 'enum' / 'extern' / 'float' / 'for' / 'goto' /
+    'if' / 'inline' / 'int' / 'long' / 'register' / 'restrict' / 'return' /
+    'short' / 'signed' / 'sizeof' / 'static' / 'struct' / 'switch' / 'typedef' /
+    'union' / 'unsigned' / 'void' / 'volatile' / 'while'
+  end
+
+
+  rule DOT '.' _ end
+  rule ELLIPSIS '...' _ end
+  rule ARROW '->' _ end
+  rule PLUS '+' _ end
+  rule PLUSPLUS '++' _ end
+  rule PLUSEQUALS '+=' _ end
+  rule MINUS '-' _ end
+  rule MINUSMINUS '--' _ end
+  rule MINUSEQUALS '-=' _ end
+  rule STAR '*' _ end
+  rule STAREQUALS '*=' _ end
+  rule DIV '/' _ end
+  rule DIVEQUALS '/=' _ end
+  rule LESS '<' _ end
+  rule LESSLESS '<<' _ end
+  rule LESSEQUALS '<=' _ end
+  rule LESSLESSEQUALS '<<=' _ end
+  rule GREATER '>' _ end
+  rule GREATERGREATER '>>' _ end
+  rule GREATEREQUALS '>=' _ end
+  rule GREATERGREATEREQUALS '>>=' _ end
+  rule BANG '!' _ end
+  rule BANGEQUALS '!=' _ end
+  rule BAR '|' _ end
+  rule BARBAR '||' _ end
+  rule BAREQUALS '|=' _ end
+  rule AND '&' _ end
+  rule ANDAND '&&' _ end
+  rule ANDEQUALS '&=' _ end
+  rule EQUALS '=' _ end
+  rule EQUALSEQUALS '==' _ end
+  rule PERCENT '%' _ end
+  rule PERCENTEQUALS '%=' _ end
+  rule HAT '^' _ end
+  rule HATEQUALS '^=' _ end
+  rule QUERY '?' _ end
+  rule TILDE '~' _ end
+  rule COMMA ',' _ end
+  rule COLON ':' _ end
+  rule SEMICOLON ';' _ end
+  rule LEFTSQUARE '[' _ end
+  rule RIGHTSQUARE ']' _ end
+  rule LEFTCURLY '{' _ end
+  rule RIGHTCURLY '}' _ end
+  rule LEFT '(' _ end
+  rule RIGHT ')' _ end
 end
