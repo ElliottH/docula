@@ -13,6 +13,7 @@ grammar C
     _ directive
     / _ docstring
     / _ comment
+    / _ function_declaration
     / WHITESPACE
     )+
   end
@@ -54,7 +55,46 @@ grammar C
     / multiline_comment
   end
 
+# Functions
+  rule function_declaration
+    ('inline' _)? type name LEFT fvariable_declaration_list? RIGHT SEMICOLON
+  end
+
+  rule fvariable_declaration_list
+    fvariable_declaration (COMMA fvariable_declaration)*
+  end
+
+  rule fvariable_declaration
+    type name
+  end
+
 # Utility Rules
+  rule name
+    STAR 0..2
+    !RESERVED ([a-zA-Z_] [a-zA-Z0-9_]*)
+  end
+
+  rule type
+    storage_class? struct_or_union?
+    (!struct_or_union (name / RESERVED))
+    _
+  end
+
+  rule struct_or_union
+    (
+      'struct' /
+      'union'
+    ) WHITESPACE
+  end
+
+  rule storage_class
+    (
+      'extern' /
+      'static' /
+      'auto' /
+      'register'
+    ) WHITESPACE
+  end
   rule WHITESPACE
     ([ \n\r\t\f\v])+
   end
