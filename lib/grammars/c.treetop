@@ -108,7 +108,7 @@ grammar C
     WHITESPACE?
   end
   rule EOL
-    [\n\r(\r\n)]
+    [\n]
   end
   rule RESERVED
     'auto' / 'break' / 'case' / 'char' / 'const' / 'continue' / 'default' /
