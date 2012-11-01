@@ -3,7 +3,7 @@ require 'treetop'
 
 require 'test/unit'
 
-require 'lib/grammars/c.rb'
+require 'grammars/c.rb'
 
 class TestCComments < Test::Unit::TestCase
   def setup
