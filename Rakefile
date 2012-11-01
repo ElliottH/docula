@@ -11,4 +11,4 @@ Rake::TestTask.new(:tests) do |t|
   t.warning = true
   t.verbose = false
 end
-task(:tests).comment.replace "Run the tests!"
+task(:tests).comment.replace "Run the tests!" unless task(:tests).comment.nil?
