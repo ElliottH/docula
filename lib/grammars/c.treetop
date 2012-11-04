@@ -15,6 +15,7 @@ grammar C
     / _ comment
     / _ function_declaration
     / _ variable_declaration_list
+    / _ variable_definition_list
     / WHITESPACE
     )+
   end
@@ -74,16 +75,94 @@ grammar C
     type name (COMMA name)* SEMICOLON
   end
 
+  rule variable_definition_list
+    type define_or_declare (COMMA define_or_declare)* SEMICOLON
+  end
+
+  rule define_or_declare
+    variable_assignment
+    / name
+  end
+
+  rule variable_assignment
+    name EQUALS variable_definition
+  end
+
+  rule variable_definition
+    value
+    / name
+  end
+
 # Utility Rules
   rule name
     STAR 0..2
-    !RESERVED ([a-zA-Z_] [a-zA-Z0-9_]*)
+    !(RESERVED WHITESPACE) ([a-zA-Z_] [a-zA-Z0-9_]*)
+    _
   end
 
   rule type
     storage_class? struct_or_union?
     (!struct_or_union (name / RESERVED))
     _
+  end
+
+  rule value
+    sign?
+    (
+      float_value
+      / hexadecimal_value
+      / octal_value
+      / decimal_value
+    )
+    value_suffix?
+  end
+
+  rule sign
+    [+-]
+  end
+
+  rule decimal_value
+    decimal_prefix decimal_digit*
+    / '0'
+  end
+  rule decimal_prefix
+    [1-9]
+  end
+  rule decimal_digit
+    [0-9]
+  end
+
+  rule octal_value
+    octal_prefix octal_digit+
+  end
+  rule octal_prefix
+    '0'
+  end
+  rule octal_digit
+    [0-7]
+  end
+
+  rule hexadecimal_value
+    hexadecimal_prefix hexadecimal_digit+
+  end
+  rule hexadecimal_prefix
+    '0' [Xx]
+  end
+  rule hexadecimal_digit
+    [0-9a-fA-F]
+  end
+
+  rule float_value
+    (decimal_value? DOT decimal_digit*)
+    / (octal_value? DOT octal_digit*)
+    / (hexadecimal_value? DOT hexadecimal_digit*)
+  end
+
+  rule value_suffix
+    'u' / 'U'
+    / 'L' 1..2 / 'l' 1..2
+    / 'e' sign? value / 'E' sign? value
+    / 'p' sign? value / 'P' sign? value
   end
 
   rule struct_or_union

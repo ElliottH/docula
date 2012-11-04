@@ -57,6 +57,13 @@ class TestCVariables < Test::Unit::TestCase
 
     assert_not_nil @parser.parse("int *j = i;")
 
+    assert_not_nil @parser.parse("long k = 8589934592L;")
+    assert_not_nil @parser.parse("int l = 0xBEEF;")
+    assert_not_nil @parser.parse("long m = 2e45;")
+    assert_not_nil @parser.parse("float f = 400.2;")
+    assert_not_nil @parser.parse("double d = -9000.;")
+    assert_not_nil @parser.parse("double e = .16;")
+
     assert_not_nil @parser.parse("int j = ++i;")
     assert_not_nil @parser.parse("int j = i * j;")
     assert_not_nil @parser.parse("int j = i++;")
