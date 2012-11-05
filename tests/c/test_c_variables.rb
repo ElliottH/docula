@@ -75,10 +75,23 @@ class TestCVariables < Test::Unit::TestCase
     assert_not_nil @parser.parse("int l = *k;")
     assert_not_nil @parser.parse("char a = ~b;")
 
+    assert_not_nil @parser.parse("int d += 42;")
+    assert_nil @parser.parse("int d == 42;")
+
+    assert_not_nil @parser.parse("int a = a + b;")
     assert_not_nil @parser.parse("int j = i * j;")
     assert_not_nil @parser.parse("int i = i ? a : b;")
     assert_not_nil @parser.parse("int i = i > 2 ? a : b;")
     assert_not_nil @parser.parse("int i = i > 2 ? (a * b) : c;")
     assert_not_nil @parser.parse("int i = i > 2 ? a * b : c;")
+    assert_nil @parser.parse("int x = y ? z;")
+    assert_nil @parser.parse("int x = y * ;")
+
+    assert_not_nil @parser.parse("int a = (a + b) * b * (c+d);")
+
+    assert_not_nil @parser.parse("int b = a;")
+    assert_not_nil @parser.parse("int b = a ? b * c % d : e;")
+    assert_not_nil @parser.parse("int b = (a ? (b * c) % d : e);")
+    assert_not_nil @parser.parse("int b = (a ? ((b * c) % d) : e);")
   end
 end

@@ -85,7 +85,7 @@ grammar C
   end
 
   rule variable_assignment
-    name EQUALS expression
+    name EQUAL (query_expression / expression)
   end
 
   rule basic_expression
@@ -94,14 +94,14 @@ grammar C
   end
 
   rule expression
-    LEFT?
+    LEFT*
     (
       'sizeof' _ LEFT? (type / expression) RIGHT?
-      / postfix_expressionLorem ipsum Duis adipisicing ex ea exercitation adipisicing magna.
+      / postfix_expression
       / function_expression
-      / prefix_operator expression
+      / prefix_operator query_expression
     )
-    RIGHT?
+    RIGHT*
   end
 
   rule postfix_expression
@@ -120,6 +120,61 @@ grammar C
 
   rule argument_list
     (expression (COMMA expression)*)
+  end
+
+  rule query_expression
+    land_expression (QUERY query_expression COLON query_expression)* _
+  end
+
+  rule land_expression
+    lor_expression (ANDAND lor_expression)* _
+  end
+
+  rule lor_expression
+    xor_expression (BARBAR xor_expression)* _
+  end
+
+  rule xor_expression
+    or_expression (HAT or_expression)* _
+  end
+
+  rule or_expression
+    and_expression (BAR and_expression)* _
+  end
+
+  rule and_expression
+    equal_expression (AND equal_expression)* _
+  end
+
+  rule equal_expression
+    compare_expression ((EQUALSEQUALS / BANGEQUALS) compare_expression)* _
+  end
+
+  rule compare_expression
+    shift_expression (
+      (LESS / LESSEQUALS / GREATER / GREATEREQUALS)
+      shift_expression
+    )* _
+  end
+
+  rule shift_expression
+    add_expression ((LESSLESS / GREATERGREATER) add_expression)* _
+  end
+
+  rule add_expression
+    mul_expression ((PLUS / MINUS) mul_expression)* _
+  end
+
+  rule mul_expression
+    cast_expression ((STAR / DIV / PERCENT) cast_expression)* _
+  end
+
+  rule cast_expression
+    (
+      LEFT type RIGHT cast_expression
+      / expression
+    )
+    _
   end
 
 # Utility Rules
@@ -239,6 +294,19 @@ grammar C
     '\b'
   end
 
+  rule EQUAL
+    EQUALS
+    / PLUSEQUALS
+    / MINUSEQUALS
+    / DIVEQUALS
+    / STAREQUALS
+    / BAREQUALS
+    / ANDEQUALS
+    / HATEQUALS
+    / PERCENTEQUALS
+    / GREATERGREATEREQUALS
+    / LESSLESSEQUALS
+  end
 
   rule DOT '.' _ end
   rule ELLIPSIS '...' _ end
