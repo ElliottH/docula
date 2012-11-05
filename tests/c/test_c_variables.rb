@@ -64,6 +64,8 @@ class TestCVariables < Test::Unit::TestCase
     assert_not_nil @parser.parse("double d = -9000.;")
     assert_not_nil @parser.parse("double e = .16;")
 
+    #assert_nil @parser.parse("float f = char;")
+
     assert_not_nil @parser.parse("size_t j = sizeof i;")
     assert_not_nil @parser.parse("size_t sint = sizeof (int);")
 
