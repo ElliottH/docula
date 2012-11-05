@@ -64,11 +64,19 @@ class TestCVariables < Test::Unit::TestCase
     assert_not_nil @parser.parse("double d = -9000.;")
     assert_not_nil @parser.parse("double e = .16;")
 
+    assert_not_nil @parser.parse("size_t j = sizeof i;")
+    assert_not_nil @parser.parse("size_t sint = sizeof (int);")
+
     assert_not_nil @parser.parse("int j = ++i;")
-    assert_not_nil @parser.parse("int j = i * j;")
     assert_not_nil @parser.parse("int j = i++;")
+    assert_not_nil @parser.parse("int *k = &j;")
+    assert_not_nil @parser.parse("int l = *k;")
+    assert_not_nil @parser.parse("char a = ~b;")
+
+    assert_not_nil @parser.parse("int j = i * j;")
     assert_not_nil @parser.parse("int i = i ? a : b;")
     assert_not_nil @parser.parse("int i = i > 2 ? a : b;")
+    assert_not_nil @parser.parse("int i = i > 2 ? (a * b) : c;")
     assert_not_nil @parser.parse("int i = i > 2 ? a * b : c;")
   end
 end

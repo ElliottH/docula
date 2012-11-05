@@ -85,12 +85,41 @@ grammar C
   end
 
   rule variable_assignment
-    name EQUALS variable_definition
+    name EQUALS expression
   end
 
-  rule variable_definition
+  rule basic_expression
     value
     / name
+  end
+
+  rule expression
+    LEFT?
+    (
+      'sizeof' _ LEFT? (type / expression) RIGHT?
+      / postfix_expressionLorem ipsum Duis adipisicing ex ea exercitation adipisicing magna.
+      / function_expression
+      / prefix_operator expression
+    )
+    RIGHT?
+  end
+
+  rule postfix_expression
+    basic_expression
+    (
+      DOT name
+      / ARROW name
+      / PLUSPLUS
+      / MINUSMINUS
+    )*
+  end
+
+  rule function_expression
+    name LEFT argument_list? RIGHT
+  end
+
+  rule argument_list
+    (expression (COMMA expression)*)
   end
 
 # Utility Rules
@@ -104,6 +133,15 @@ grammar C
     storage_class? struct_or_union?
     (!struct_or_union (name / RESERVED))
     _
+  end
+
+  rule prefix_operator
+    PLUSPLUS
+    / MINUSMINUS
+    / AND
+    / STAR
+    / BANG
+    / TILDE
   end
 
   rule value
