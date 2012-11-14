@@ -93,5 +93,8 @@ class TestCVariables < Test::Unit::TestCase
     assert_not_nil @parser.parse("int b = a ? b * c % d : e;")
     assert_not_nil @parser.parse("int b = (a ? (b * c) % d : e);")
     assert_not_nil @parser.parse("int b = (a ? ((b * c) % d) : e);")
+
+    assert_not_nil @parser.parse("int c = (a == b);")
+    assert_not_nil @parser.parse("int c = a(b);")
   end
 end
