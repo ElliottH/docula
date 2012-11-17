@@ -150,6 +150,7 @@ grammar C
     value
     / name
     / string
+    / char_constant
   end
 
   rule expression
@@ -245,6 +246,7 @@ grammar C
   rule name
     STAR 0..2
     !RESERVED ([a-zA-Z_] [a-zA-Z0-9_]*)
+    array*
     _
   end
 
@@ -254,8 +256,21 @@ grammar C
     _
   end
 
+  rule array
+    LEFTSQUARE (name / value) RIGHTSQUARE
+  end
+
   rule string
-  DOUBLEQUOTE string_body* DOUBLEQUOTE
+    DOUBLEQUOTE string_body* DOUBLEQUOTE
+  end
+
+  rule char_constant
+    QUOTE char_body+ QUOTE
+  end
+
+  rule char_body
+    [^'\\\n\r]
+    / escape_sequence
   end
 
   rule string_body

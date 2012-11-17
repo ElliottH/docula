@@ -96,5 +96,16 @@ class TestCVariables < Test::Unit::TestCase
 
     assert_not_nil @parser.parse("int c = (a == b);")
     assert_not_nil @parser.parse("int c = a(b);")
+
+    assert_not_nil @parser.parse("int z = ++y;")
+    assert_not_nil @parser.parse("int z = y++;")
+
+    assert_not_nil @parser.parse("int arr[100];")
+    assert_not_nil @parser.parse("int arr[n] = 10;")
+    assert_not_nil @parser.parse("int arr[x][y];")
+
+    assert_not_nil @parser.parse("int a = 'a';")
+    assert_not_nil @parser.parse("int a = '\"';")
+    assert_nil @parser.parse("int a = '';")
   end
 end
