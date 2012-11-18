@@ -151,6 +151,15 @@ grammar C
     / name
     / string
     / char_constant
+    / struct_assignment_block
+  end
+
+  rule struct_assignment_block
+    LEFTCURLY struct_assignment (COMMA struct_assignment)* RIGHTCURLY
+  end
+
+  rule struct_assignment
+    (DOT name EQUAL)? query_expression
   end
 
   rule expression

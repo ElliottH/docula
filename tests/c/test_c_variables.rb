@@ -113,5 +113,10 @@ class TestCVariables < Test::Unit::TestCase
    assert_not_nil @parser.parse("struct foo { int x; } bar;")
    assert_not_nil @parser.parse("struct foo { int x; float y; } bar;")
    assert_not_nil @parser.parse("struct f { int flag : 1; int num; } g;")
+
+   assert_not_nil @parser.parse("struct foo bar = { 1, \"baz\" };")
+   assert_not_nil @parser.parse("struct foo bar = { .a = 1, .b = \"baz\" };")
+
+   assert_not_nil @parser.parse("int arr[2] = { 5 * 6, 6 * 7 };")
   end
 end
