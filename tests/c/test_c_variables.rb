@@ -17,15 +17,6 @@ class TestCVariables < Test::Unit::TestCase
     assert_not_nil @parser.parse("int i,j,k;")
     assert_nil @parser.parse("int i j;")
 
-    assert_not_nil @parser.parse("struct foo bar;")
-    assert_not_nil @parser.parse("struct foo bar, baz;")
-    assert_nil @parser.parse("struct baz;")
-
-    assert_not_nil @parser.parse("extern int a;")
-    assert_not_nil @parser.parse("static union bob cat;")
-    assert_nil @parser.parse("static union bob;")
-    assert_nil @parser.parse("extern union;")
-
     assert_not_nil @parser.parse("int* j;")
     assert_not_nil @parser.parse("int *j;")
 
@@ -47,14 +38,6 @@ class TestCVariables < Test::Unit::TestCase
     assert_not_nil @parser.parse("int i, j = 2;")
     assert_not_nil @parser.parse("int i = 1,j;")
     assert_nil @parser.parse("int k = 0, l = ;")
-
-    assert_not_nil @parser.parse("struct foo bar = baz;")
-    assert_not_nil @parser.parse("static struct foo bar = baz;")
-    assert_not_nil @parser.parse("struct bob cat = meow, dog = woof;")
-    assert_not_nil @parser.parse("struct bob cat = meow, dog;")
-    assert_nil @parser.parse("struct foo = baz;")
-    assert_nil @parser.parse("struct foo = bar, baz =;")
-
     assert_not_nil @parser.parse("int *j = i;")
 
     assert_not_nil @parser.parse("long k = 8589934592L;")
@@ -107,16 +90,31 @@ class TestCVariables < Test::Unit::TestCase
     assert_not_nil @parser.parse("int a = 'a';")
     assert_not_nil @parser.parse("int a = '\"';")
     assert_nil @parser.parse("int a = '';")
+
+    assert_not_nil @parser.parse("int arr[2] = { 5 * 6, 6 * 7 };")
   end
 
   def test_structs
-   assert_not_nil @parser.parse("struct foo { int x; } bar;")
-   assert_not_nil @parser.parse("struct foo { int x; float y; } bar;")
-   assert_not_nil @parser.parse("struct f { int flag : 1; int num; } g;")
+    assert_not_nil @parser.parse("struct foo bar;")
+    assert_not_nil @parser.parse("struct foo bar, baz;")
 
-   assert_not_nil @parser.parse("struct foo bar = { 1, \"baz\" };")
-   assert_not_nil @parser.parse("struct foo bar = { .a = 1, .b = \"baz\" };")
+    assert_not_nil @parser.parse("extern int a;")
+    assert_not_nil @parser.parse("static union bob cat;")
+    assert_nil @parser.parse("extern union;")
 
-   assert_not_nil @parser.parse("int arr[2] = { 5 * 6, 6 * 7 };")
+    assert_not_nil @parser.parse("struct foo bar = baz;")
+    assert_not_nil @parser.parse("static struct foo bar = baz;")
+    assert_not_nil @parser.parse("struct bob cat = meow, dog = woof;")
+    assert_not_nil @parser.parse("struct bob cat = meow, dog;")
+    assert_nil @parser.parse("struct foo = baz;")
+    assert_nil @parser.parse("struct foo = bar, baz =;")
+
+    assert_not_nil @parser.parse("struct foo { int x; };")
+    assert_not_nil @parser.parse("struct foo { int x; } bar;")
+    assert_not_nil @parser.parse("struct foo { int x; float y; } bar;")
+    assert_not_nil @parser.parse("struct f { int flag : 1; int num; } g;")
+
+    assert_not_nil @parser.parse("struct foo bar = { 1, \"baz\" };")
+    assert_not_nil @parser.parse("struct foo bar = { .a = 1, .b = \"baz\" };")
   end
 end

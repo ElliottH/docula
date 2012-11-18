@@ -17,6 +17,7 @@ grammar C
     / _ function_definition
     / _ variable_declaration_list
     / _ variable_definition_list
+    / _ struct_or_union_declaration
     / WHITESPACE
     )+
   end
@@ -160,6 +161,10 @@ grammar C
 
   rule struct_assignment
     (DOT name EQUAL)? query_expression
+  end
+
+  rule struct_or_union_declaration
+    storage_class? struct_or_union SEMICOLON
   end
 
   rule expression
