@@ -108,4 +108,10 @@ class TestCVariables < Test::Unit::TestCase
     assert_not_nil @parser.parse("int a = '\"';")
     assert_nil @parser.parse("int a = '';")
   end
+
+  def test_structs
+   assert_not_nil @parser.parse("struct foo { int x; } bar;")
+   assert_not_nil @parser.parse("struct foo { int x; float y; } bar;")
+   assert_not_nil @parser.parse("struct f { int flag : 1; int num; } g;")
+  end
 end

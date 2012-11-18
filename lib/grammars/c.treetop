@@ -251,8 +251,11 @@ grammar C
   end
 
   rule type
-    storage_class? struct_or_union?
-    (!struct_or_union (name / TYPE))
+    storage_class?
+    (
+      struct_or_union
+      / (!struct_or_union (name / TYPE))
+    )
     _
   end
 
@@ -363,6 +366,14 @@ grammar C
       'struct' /
       'union'
     ) WHITESPACE
+    name
+    struct_or_union_definition?
+  end
+
+  rule struct_or_union_definition
+    LEFTCURLY
+    (type name ( _ COLON (name / value))? SEMICOLON)+
+    RIGHTCURLY
   end
 
   rule storage_class
