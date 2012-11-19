@@ -123,6 +123,7 @@ grammar C
 
   rule assignment_statement
     type? define_or_declare (COMMA define_or_declare)* SEMICOLON
+    / define_or_declare SEMICOLON
   end
 
   rule expr
