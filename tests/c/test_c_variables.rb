@@ -117,4 +117,12 @@ class TestCVariables < Test::Unit::TestCase
     assert_not_nil @parser.parse("struct foo bar = { 1, \"baz\" };")
     assert_not_nil @parser.parse("struct foo bar = { .a = 1, .b = \"baz\" };")
   end
+
+  def test_enums
+    assert_not_nil @parser.parse("enum BOOL { FALSE, TRUE };")
+    assert_not_nil @parser.parse("enum BOOL { TRUE = 1, FALSE = 0, MAYBE = 0.5 };")
+    assert_not_nil @parser.parse("enum BOOL test;")
+    assert_not_nil @parser.parse("enum BOOL test = TRUE;")
+    assert_not_nil @parser.parse("enum BOOL { FALSE, TRUE } test;")
+  end
 end

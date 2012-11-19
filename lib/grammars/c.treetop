@@ -18,6 +18,7 @@ grammar C
     / _ variable_declaration_list
     / _ variable_definition_list
     / _ struct_or_union_declaration
+    / _ enum_definition SEMICOLON
     / WHITESPACE
     )+
   end
@@ -167,6 +168,13 @@ grammar C
     storage_class? struct_or_union SEMICOLON
   end
 
+  rule enum_definition
+    'enum' WHITESPACE name
+    LEFTCURLY name (EQUALS (name / value))?
+    (COMMA name (EQUALS (name / value))?)*
+    _ RIGHTCURLY
+  end
+
   rule expression
     LEFT*
     (
@@ -268,6 +276,8 @@ grammar C
     storage_class?
     (
       struct_or_union
+      / enum_definition
+      / ('enum' _ name)
       / (!struct_or_union (name / TYPE))
     )
     _
