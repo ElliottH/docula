@@ -103,7 +103,7 @@ grammar C
       statement
     / 'while' _ LEFT expr RIGHT
       statement
-    / 'do' statement 'while' _ LEFT expression RIGHT SEMICOLON
+    / 'do' _ statement 'while' _ LEFT expression RIGHT SEMICOLON
   end
 
   rule logic_statement
@@ -114,10 +114,10 @@ grammar C
 
   rule jump_statement
     (
-      'goto' name
+      'goto' WHITESPACE name
       / 'break'
       / 'continue'
-      / 'return' expr?
+      / 'return' (WHITESPACE expr)?
     ) SEMICOLON
   end
 
