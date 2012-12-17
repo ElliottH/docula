@@ -124,5 +124,6 @@ class TestCVariables < Test::Unit::TestCase
     assert_not_nil @parser.parse("enum BOOL test;")
     assert_not_nil @parser.parse("enum BOOL test = TRUE;")
     assert_not_nil @parser.parse("enum BOOL { FALSE, TRUE } test;")
+    assert_not_nil @parser.parse("enum BOOL { FALSE = 0, TRUE = 1 } test;")
   end
 end

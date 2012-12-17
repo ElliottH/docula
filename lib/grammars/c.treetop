@@ -83,13 +83,26 @@ grammar C
       RIGHTCURLY
   end
 
+  rule compound_statement
+    LEFTCURLY (
+      statement
+      / variable_definition_list
+      / query_expression
+    )* RIGHTCURLY
+  end
+
   rule statement
-    jump_statement
+    _
+    (
+    assignment_statement
+    / jump_statement
     / loop_statement
     / labelled_statement
-    / assignment_statement
     / logic_statement
-    / LEFTCURLY statement RIGHTCURLY
+    / compound_statement
+    / query_expression SEMICOLON
+    )
+    _
   end
 
   rule labelled_statement
@@ -108,8 +121,8 @@ grammar C
 
   rule logic_statement
     'if' _ LEFT expr RIGHT statement
-    'if' _ LEFT expr RIGHT statement 'else' statement
-    'switch' _ LEFT expr RIGHT statement
+    / 'if' _ LEFT expr RIGHT statement 'else' statement
+    / 'switch' _ LEFT expr RIGHT statement
   end
 
   rule jump_statement
@@ -127,8 +140,12 @@ grammar C
   end
 
   rule expr
-    query_expression
-    / variable_assignment
+    _
+    (
+      value
+      / (!query_expression name)
+      / query_expression
+    )
   end
 
 # Variables
@@ -167,6 +184,15 @@ grammar C
 
   rule struct_or_union_declaration
     storage_class? struct_or_union SEMICOLON
+  end
+
+  rule enum_definition
+    'enum' WHITESPACE name
+    (
+    LEFTCURLY name (EQUALS (name / value))?
+    (COMMA name (EQUALS (name / value))?)*
+    _ RIGHTCURLY
+    )?
   end
 
   rule enum_definition
