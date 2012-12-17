@@ -7,7 +7,8 @@ end
 
 Rake::TestTask.new(:test) do |t|
   t.libs << "libs"
-  t.test_files = FileList['tests/test_c.rb']
+  #t.test_files = FileList['tests/test_c.rb']
+  t.test_files = FileList['tests/test_csimple.rb']
   t.warning = true
   t.verbose = false
 end
