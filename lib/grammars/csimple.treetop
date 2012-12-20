@@ -12,9 +12,9 @@ grammar CSimple
     (
       _ function
       / _ variable
+      / _ docstring
       / _ comment
       / _ directive
-      / _ docstring
       / WHITESPACE
     )+
   end
@@ -121,6 +121,7 @@ grammar CSimple
   end
   rule type
     storage_class?
+    ('unsigned' _)?
     (
       struct_or_union
       / enum_definition
