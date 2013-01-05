@@ -10,22 +10,20 @@
 grammar CSimple
   rule start
     (
-      _ function
-      / _ variable
-      / _ docstring
-      / _ comment
-      / _ directive
+      function
+      / variable
+      / docstring
+      / comment
+      / directive
       / WHITESPACE
     )+
+    <StartNode>
   end
 
   rule variable
-    (docstring _)?
-    (
-      struct_or_union SEMICOLON
-      / enum_definition SEMICOLON
-      / type name rhs? (COMMA name rhs?)* SEMICOLON
-    )
+    docstring? _ struct_or_union SEMICOLON <VariableNode>
+    / docstring? _ enum_definition SEMICOLON <VariableNode>
+    / docstring? _ type name rhs? (COMMA name rhs?)* SEMICOLON <VariableNode>
   end
 
   rule rhs
@@ -45,28 +43,38 @@ grammar CSimple
   end
 
   rule function
-    (docstring _)?
+    docstring?
+    _
     function_prototype
     (
       SEMICOLON
       / LEFTCURLY function_body* RIGHTCURLY
     )
+    <FunctionNode>
   end
 
   rule function_prototype
-    ('inline' _)? type name LEFT (type name (COMMA type name)*)? RIGHT
+    ('inline' _)? type name LEFT arguments? RIGHT <FunctionPrototypeNode>
+  end
+  rule arguments
+    argument (COMMA argument)*
+    <ArgumentsNode>
+  end
+  rule argument
+    type name
+    <ArgumentNode>
   end
 
   rule function_body
-    LEFTCURLY function_body* RIGHTCURLY
-    / string
-    / (!["{}'] .)+
+    LEFTCURLY function_body* RIGHTCURLY <FunctionBodyNode>
+    / (string) <FunctionBodyNode>
+    / (!["{}'] .)+ <FunctionBodyNode>
   end
 
   rule comment
-    '//' ( !EOL .)* EOL
-    / '# ' ( !EOL .)* EOL
-    / multiline_comment
+    '//' ( !EOL .)* EOL <CommentNode>
+    / '# ' ( !EOL .)* EOL <CommentNode>
+    / (multiline_comment) <CommentNode>
   end
   rule multiline_comment
     '/*'
@@ -78,8 +86,8 @@ grammar CSimple
   end
 
   rule docstring
-    '///' (!EOL .)* EOL
-    / '## ' ( !EOL .)*
+    '///' ( !EOL .)* EOL <DocstringNode>
+    / '## ' ( !EOL .)* EOL <DocstringNode>
     / multiline_docstring
   end
   rule multiline_docstring
@@ -89,10 +97,11 @@ grammar CSimple
       (. / EOL)
     )*
     '*/'
+    <DocstringNode>
   end
 
   rule directive
-    '#' ( !EOL .)* EOL
+    docstring? _ '#' ( !EOL .)* EOL <DirectiveNode>
   end
 
 
@@ -128,6 +137,7 @@ grammar CSimple
       / (!struct_or_union (name / TYPE))
     )
     _
+    <TypeNode>
   end
 
   rule struct_or_union
@@ -159,6 +169,7 @@ grammar CSimple
     !RESERVED ([a-zA-Z_] [a-zA-Z0-9_]*)
     array*
     _
+    <NameNode>
   end
 
   rule array
