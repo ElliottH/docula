@@ -8,7 +8,8 @@ class DBUtils
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         path TEXT NOT NULL,
         hash TEXT NOT NULL,
-        docstring TEXT)"
+        docstring TEXT,
+        exist INTEGER DEFAULT 1)"
     )
     db.execute(
       "CREATE TABLE IF NOT EXISTS variables (
