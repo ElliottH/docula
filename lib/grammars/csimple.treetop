@@ -134,6 +134,7 @@ grammar CSimple
   rule type
     storage_class?
     ('unsigned' _)?
+    ('const' _)?
     (
       struct_or_union
       / enum_definition

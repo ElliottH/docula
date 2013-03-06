@@ -27,7 +27,6 @@ class DBUtils
         file_id INTEGER,
         name TEXT NOT NULL,
         type TEXT NOT NULL,
-        arguments TEXT,
         return TEXT,
         docstring TEXT,
         FOREIGN KEY(file_id) REFERENCES files (id) ON DELETE CASCADE)"
