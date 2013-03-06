@@ -14,27 +14,42 @@ require 'lib/utils'
 require 'lib/db_utils'
 
 require 'lib/input'
+require 'lib/html_output'
 
 parsers = {
             '.c' => CSimpleParser,
             '.h' => CSimpleParser
           }
+outputs = {
+            'HTML' => HtmlOutput
+          }
 
-options = { :directory => Dir.pwd }
+options = {
+  :directory => Dir.pwd,
+  :output => "output",
+  :format => HtmlOutput
+}
 OptionParser.new do |o|
   o.banner = ''
   o.on('-d', '--directory DIRECTORY', 'Run in DIRECTORY.') do |d|
     options[:directory] = d
   end
+  o.on('-o', '--output DIRECTORY', 'Output to DIRECTORY.') do |o|
+    options[:output] = o
+  end
   o.on('-f', '--force', 'Force reparsing of all files.') do |f|
     options[:force] = f
   end
-  o.on('-h', '--help', 'Output this help and exit.') { puts o; exit }
+  o.on("--format FORMAT", outputs, "Select output format",
+          "  (#{outputs.keys})") do |format|
+    options[:format] = format
+  end
+  o.on_tail('-h', '--help', 'Output this help and exit.') { puts o; exit }
   o.on('-v', '--verbose', 'Run verbosely') { |v| options[:verbose] = v }
   o.parse!
 end
 
-print "Running in directory #{options[:directory]}" if options[:verbose]
+print "Running in directory #{options[:directory]}\n" if options[:verbose]
 Dir.mkdir(".docula") unless File.directory?(".docula")
 
 db = SQLite3::Database.new(".docula/db.sqlite")
@@ -54,15 +69,19 @@ Dir.recurse(options[:directory]) do |file|
     row = fhash.next
     if row == nil || row['hash'] != hash || options[:force]
       file_del_stmt.execute(file)
-      tree = CSimpleParser.new.parse(contents)
+      parser = parsers[File.extname(file)].new
+      tree = parser.parse(contents)
       if tree
         print "Success!\n" if options[:verbose]
         file_ins_stmt.execute(file, hash, tree.docstrings.map { |doc| doc.strip }.join('\n'))
         parse tree, db, db.last_insert_row_id, options
       else
-        print "Failed!\n" if options[:verbose]
-        print "Failed to parse #{file} with #{parsers[File.extname(file)]}!" unless options[:verbose]
+        print "Failed!\n#{parser.failure_reason}\n" if options[:verbose]
+        print "Failed to parse #{file} with #{parsers[File.extname(file)]}!\n" unless options[:verbose]
       end
     end
   end
 end
+
+output = options[:format].new(db, options)
+output.output
