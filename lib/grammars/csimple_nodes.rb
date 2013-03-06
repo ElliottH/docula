@@ -96,13 +96,55 @@ module CSimple
       elements.select { |element| element.class == VariableNode }
     end
     def docstrings
-      elements.select { |element| element.class == DocstringNode }
+      elements.select do |element|
+        element.class == DocstringNode && element.file?
+      end
+    end
+    def typedefs
+      elements.select { |element| element.class == TypeDefNode }
     end
   end
 
   class DirectiveNode < BaseNode
     include Documentable
+
+    def include?
+      text_value.include? "#include"
+    end
+
+    def includes
+      text_value.match(/#include\s+(?:<|")(.*?)(?:>|")/).captures.first
+    end
+
+    def define?
+      text_value.include? "#define"
+    end
+
+    def defines
+      elements.select do |elem|
+        elem.class != DocstringNode
+      end.collect do |elem|
+        elem.text_value
+      end.join.match(/#define\s+(.*?)\s+(.*?)$/).captures
+      #text_value.match(/^#define\s+(.*?)\s+(.*?)$/).captures
+    end
   end
+
+  class TypeDefNode < BaseNode
+    include Documentable
+
+    def from
+      elements.detect do |element|
+        element.class == TypeNode
+      end.text_value
+    end
+    def to
+      elements.reverse_each.detect do |element|
+        element.class == TypeNode
+      end.text_value
+    end
+  end
+
   class VariableNode < BaseNode
     include Documentable
     include NameAndType

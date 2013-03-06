@@ -8,6 +8,7 @@ class DBUtils
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         path TEXT NOT NULL,
         hash TEXT NOT NULL,
+        includes TEXT,
         docstring TEXT,
         exist INTEGER DEFAULT 1)"
     )
@@ -34,12 +35,28 @@ class DBUtils
     db.execute(
       "CREATE TABLE IF NOT EXISTS arguments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        func_id INTEGER,
+        func_id INTEGER NOT NULL,
         name TEXT NOT NULL,
         type TEXT NOT NULL,
         flow TEXT,
         docstring TEXT,
         FOREIGN KEY(func_id) REFERENCES functions (id) ON DELETE CASCADE)"
     )
+    db.execute(
+      "CREATE TABLE IF NOT EXISTS defines (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        file_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        value TEXT,
+        docstring TEXT,
+        FOREIGN KEY(file_id) REFERENCES files (id) ON DELETE CASCADE)")
+    db.execute(
+      "CREATE TABLE IF NOT EXISTS typedefs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        file_id INTEGER NOT NULL,
+        value TEXT NOT NULL,
+        name TEXT NOT NULL,
+        docstring TEXT,
+        FOREIGN KEY(file_id) REFERENCES files (id) ON DELETE CASCADE)")
   end
 end

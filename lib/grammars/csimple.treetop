@@ -12,9 +12,10 @@ grammar CSimple
     (
       function
       / variable
+      / directive
+      / typedef
       / docstring
       / comment
-      / directive
       / WHITESPACE
     )+
     <StartNode>
@@ -104,7 +105,9 @@ grammar CSimple
     docstring? _ '#' ( !EOL .)* EOL <DirectiveNode>
   end
 
-
+  rule typedef
+    docstring? _ 'typedef' WHITESPACE type type SEMICOLON <TypeDefNode>
+  end
 
   rule RESERVED
     '\b'

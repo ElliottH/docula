@@ -130,4 +130,9 @@ class TestCSimpleVariables < Test::Unit::TestCase
     assert_not_nil @parser.parse("enum BOOL { FALSE, TRUE } test;")
     assert_not_nil @parser.parse("enum BOOL { FALSE = 0, TRUE = 1 } test;")
   end
+
+  def test_typedefs
+    assert_not_nil @parser.parse("typedef foo bar;")
+    assert_not_nil @parser.parse("typedef struct foo bar;")
+  end
 end

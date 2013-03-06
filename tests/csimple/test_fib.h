@@ -7,6 +7,17 @@
  * @license MIT
  */
 
+
+/**
+ * The most important #define ever written.
+ */
+#define THE_MEANING_OF_LIFE 42
+
+/**
+ * This is a just a simple, and rather pointless, typedef!
+ */
+typedef unsigned int uint;
+
 /**
  * Default value to be used.
  */
@@ -18,11 +29,11 @@ int default = 10;
  * @param[in] n The position in the series that you wish to obtain the value for.
  * @return The nth Fibonacci number.
  */
-unsigned int fibonacci(unsigned int n);
+uint fibonacci(uint n);
 
 /**
  * Calculates & returns the defaultth Fibonacci number.
  *
  * @return The Fibonacci number corresponding with default.
  */
-unsigned int fib();
+uint fib();

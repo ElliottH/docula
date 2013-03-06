@@ -27,4 +27,20 @@ def parse(tree, db, file_id, options)
     end
     fargs_stmt.execute(args.join("|"), func_id)
   end
+
+  includes = []
+  defines_stmt = db.prepare("INSERT INTO defines (file_id, name, value, docstring) VALUES (#{file_id}, ?, ?, ?)")
+  tree.directives.each do |directive|
+    if directive.include?
+      includes << directive.includes
+    elsif directive.define?
+      defines_stmt.execute(directive.defines[0], directive.defines[1], directive.docstring[:text])
+    end
+  end
+  db.execute("UPDATE files SET includes = ? WHERE id = ?", includes.join("|"), file_id)
+
+  typedef_stmt = db.prepare("INSERT INTO typedefs (file_id, value, name, docstring) VALUES (#{file_id}, ?, ?, ?)")
+  tree.typedefs.each do |typedef|
+    typedef_stmt.execute(typedef.from, typedef.to, typedef.docstring[:text])
+  end
 end
