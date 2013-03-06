@@ -7,7 +7,7 @@
  * @license MIT
  */
 
-#include "test.h"
+#include "test_fib.h"
 
 /**
  * Calculates the nth Fibonacci number recursively.

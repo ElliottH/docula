@@ -17,6 +17,12 @@ class Dir
   end
 end
 
+class String
+  def unindent
+    gsub(/^#{scan(/^\s*/).min_by{|l|l.length}}/, "")
+  end
+end
+
 class Utils
   def self.merge(a, b)
     if a = []
