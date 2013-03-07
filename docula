@@ -60,6 +60,7 @@ file_del_stmt = db.prepare("DELETE FROM files WHERE path = ?")
 file_exist_stmt = db.prepare("UPDATE files SET exist = 1 WHERE id = ?")
 
 db.execute("UPDATE files SET exist = 0")
+input = Input.new(db, options)
 Dir.recurse(options[:directory]) do |file|
   if parsers[File.extname(file)]
     print "Parsing #{file} with #{parsers[File.extname(file)]}... " if options[:verbose]
@@ -76,7 +77,7 @@ Dir.recurse(options[:directory]) do |file|
       if tree
         print "Success!\n" if options[:verbose]
         file_ins_stmt.execute(file, hash, tree.docstrings.map { |doc| doc.strip }.join('\n'))
-        parse tree, db, db.last_insert_row_id, options
+        input.parse(tree, db.last_insert_row_id)
       else
         print "Failed!\n#{parser.failure_reason}\n" if options[:verbose]
         print "Failed to parse #{file} with #{parsers[File.extname(file)]}!\n" unless options[:verbose]

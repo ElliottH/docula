@@ -1,42 +1,66 @@
-def parse(tree, db, file_id, options)
-  var_stmt = db.prepare("INSERT INTO variables (file_id, name, type, docstring) VALUES (#{file_id}, ?, ?, ?)")
-  tree.variables.each do |variable|
-    print "Found variable #{variable.Name} with type #{variable.Type}\n" if options[:verbose]
-    var_stmt.execute(variable.Name, variable.Type, variable.docstring[:text])
+class Input
+  def initialize(db, options)
+    @options = options
+    @db = db
+
+    @var_stmt = @db.prepare(
+      "INSERT INTO variables (file_id, name, type, docstring)
+       VALUES (?, ?, ?, ?)"
+    )
+    @func_stmt = @db.prepare(
+      "INSERT INTO functions (file_id, name, type, return, docstring)
+       VALUES (?, ?, ?, ?, ?)"
+    )
+    @args_stmt = @db.prepare(
+      "INSERT INTO arguments (func_id, name, type, flow, docstring)
+       VALUES (?, ?, ?, ?, ?)"
+    )
+    @defines_stmt = @db.prepare(
+      "INSERT INTO defines (file_id, name, value, docstring)
+       VALUES (?, ?, ?, ?)"
+    )
+    @typedef_stmt = @db.prepare(
+      "INSERT INTO typedefs (file_id, value, name, docstring)
+       VALUES (?, ?, ?, ?)"
+    )
   end
 
-  func_stmt = db.prepare("INSERT INTO functions (file_id, name, type, return, docstring) VALUES (#{file_id}, ?, ?, ?, ?)")
-  args_stmt = db.prepare("INSERT INTO arguments (func_id, name, type, flow, docstring) VALUES (?, ?, ?, ?, ?)")
-  tree.functions.each do |function|
-    print "Found function #{function.prototype[:name]} with return type #{function.prototype[:type]}\n" if options[:verbose]
-
-    prototype = function.prototype.merge(function.docstring)
-    if function.documented?
-      prototype[:arguments] = Utils.merge(prototype[:params], prototype[:arguments])
-      prototype.delete(:params)
+  def parse(tree, file_id)
+    tree.variables.each do |variable|
+      print "Found variable #{variable.Name} with type #{variable.Type}\n" if @options[:verbose]
+      @var_stmt.execute(file_id, variable.Name, variable.Type, variable.docstring[:text])
     end
 
-    func_stmt.execute(prototype[:name], prototype[:type], prototype[:return], prototype[:text])
-    func_id = db.last_insert_row_id
+    tree.functions.each do |function|
+      print "Found function #{function.prototype[:name]} with return type #{function.prototype[:type]}\n" if @options[:verbose]
 
-    prototype[:arguments].each do |arg|
-      args_stmt.execute(func_id, arg[:name], arg[:type], arg[:flow], arg[:description])
+      prototype = function.prototype.merge(function.docstring)
+      if function.documented?
+        prototype[:arguments] = Utils.merge(prototype[:params], prototype[:arguments])
+        prototype.delete(:params)
+      end
+
+      @func_stmt.execute(file_id, prototype[:name], prototype[:type], prototype[:return], prototype[:text])
+      func_id = @db.last_insert_row_id
+
+      prototype[:arguments].each do |arg|
+        @args_stmt.execute(func_id, arg[:name], arg[:type], arg[:flow], arg[:description])
+      end
     end
-  end
 
-  includes = []
-  defines_stmt = db.prepare("INSERT INTO defines (file_id, name, value, docstring) VALUES (#{file_id}, ?, ?, ?)")
-  tree.directives.each do |directive|
-    if directive.include?
-      includes << directive.includes
-    elsif directive.define?
-      defines_stmt.execute(directive.defines[0], directive.defines[1], directive.docstring[:text])
+    includes = []
+    tree.directives.each do |directive|
+      if directive.include?
+        includes << directive.includes
+      elsif directive.define?
+        @defines_stmt.execute(file_id, directive.defines[0], directive.defines[1], directive.docstring[:text])
+      end
     end
-  end
-  db.execute("UPDATE files SET includes = ? WHERE id = ?", includes.join("|"), file_id)
+    @db.execute("UPDATE files SET includes = ? WHERE id = ?", includes.join("|"), file_id)
 
-  typedef_stmt = db.prepare("INSERT INTO typedefs (file_id, value, name, docstring) VALUES (#{file_id}, ?, ?, ?)")
-  tree.typedefs.each do |typedef|
-    typedef_stmt.execute(typedef.from, typedef.to, typedef.docstring[:text])
+
+    tree.typedefs.each do |typedef|
+      @typedef_stmt.execute(file_id, typedef.from, typedef.to, typedef.docstring[:text])
+    end
   end
 end
