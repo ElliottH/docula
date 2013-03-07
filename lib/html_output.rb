@@ -1,5 +1,7 @@
 require 'lib/output'
 
+require 'fileutils'
+
 class HtmlOutput < Output
   def initialize(db, options)
     super
@@ -19,28 +21,30 @@ class HtmlOutput < Output
     files.each do |row|
       files_html << row(
                       link(
-                        "#{File.basename(row['path'])}.html",
-                        File.basename(row['path'])
+                        "#{row['path']}.html",
+                        row['path']
                       ),
                       row['docstring'].split("\n\n")[0]
                     )
-      files_html << "</tbody></table></body></html>"
-      File.open(
-        File.join(@options[:output], "files.html"),
-        'w'
-      ) { |f| f.write(files_html) }
 
+      file = File.join(@options[:output], "#{row['path']}.html")
+      FileUtils.mkdir_p(File.dirname(file))
       File.open(
-        File.join(@options[:output], "#{File.basename(row['path'])}.html"),
-        'w'
+        file, 'w'
       ) { |f| f.write(file_html(row)) }
     end
+
+    files_html << "</tbody></table></body></html>"
+    File.open(
+      File.join(@options[:output], "files.html"),
+      'w'
+    ) { |f| f.write(files_html) }
   end
 
   def file_html(row)
-    file_html = header(File.basename(row['path'])) << "<body>\n"
+    file_html = header(row['path']) << "<body>\n"
     file_html << "<div id=\"header\">\n"
-    file_html << "<h1>#{File.basename(row['path'])}</h1>\n"
+    file_html << "<h1>#{row['path']}</h1>\n"
     file_html << "<ul id=\"links\">\n"
     file_html << "<li><a href=\"#description\">description</a></li>\n"
     file_html << "<li><a href=\"#defines\">#defines</a></li>\n"
@@ -53,14 +57,14 @@ class HtmlOutput < Output
     includes_html(row)
     file_html << defines_html(row['id'])
     file_html << typedefs_html(row['id'])
-    file_html << functions_overview_html(row['id'])
+    file_html << functions_overview_html(row['id'], row['path'])
 
     file_html << "<hr />\n<h2 id=\"description\">Description</h2>\n"
     file_html << "#{row['docstring']}"
 
     file_html << variables_html(row['id'])
     file_html << "<hr />\n<h2>Function Documentation</h2>\n"
-    file_html << functions_html(row['id'])
+    file_html << functions_html(row['id'], row['path'])
   end
 
   def includes_html(row)
@@ -106,13 +110,13 @@ class HtmlOutput < Output
     end
   end
 
-  def functions_overview_html(row)
+  def functions_overview_html(row, path)
     if functions(row).count > 0
       html = "<table id=\"functions\" class=\"defs\">\n"
       html << "<thead><th colspan=\"2\">Functions</th></thead>\n<tbody>\n"
 
       functions(row).each do |function|
-        html << "<tr><td>#{formatted_type(function['type'])}</td>"
+        html << "<tr><td>#{formatted_type(function['type'], path)}</td>"
         html << "<td><a href=\"#f#{function['id']}\">#{function['name']}</a>( "
 
         html << arguments(function['id']).map do |argument|
@@ -134,15 +138,15 @@ class HtmlOutput < Output
     end
   end
 
-  def functions_html(row)
+  def functions_html(row, path)
     functions(row).map do |function|
       html = "<div id=\"f#{function['id']}\"><table><tbody><tr>"
-      html << "<td>#{function['type']}</td>"
+      html << "<td>#{formatted_type(function['type'], path)}</td>"
       html << "<td>#{function['name']}</td>"
       html << "<td>(</td>"
 
       html << arguments(function['id']).map do |argument|
-        "<td>#{argument['type']}</td><td>#{argument['name']}</td>"
+        "<td>#{formatted_type(argument['type'], path)}</td><td>#{argument['name']}</td>"
       end.join("</tr>\n<tr><td></td><td></td><td></td><td></td><td></td>")
 
       html << "</tr>\n<tr><td></td><td></td><td>)</td></tr></tbody></table>"
@@ -165,10 +169,17 @@ class HtmlOutput < Output
     row_with_id("", entries)
   end
 
-  def formatted_type(type)
+  def relative(from, to)
+    fromp, top = Pathname.new(from), Pathname.new(to)
+    top.relative_path_from(fromp.dirname).to_s
+  end
+
+  def formatted_type(type, current_path)
     info = type(type)
     if info
-      href = "#{File.basename(info['path'])}.html#"
+      href = relative(current_path, info['path'])
+      #href = Pathname.new(info['path']).relative_path_from(Pathname.new(current_path)).to_s
+      href << ".html#"
       href << (info['define'] ? "d" : "t")
       href << info['id'].to_s
       link(href, type)
