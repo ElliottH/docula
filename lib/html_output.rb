@@ -54,7 +54,7 @@ class HtmlOutput < Output
     file_html << "<div id=\"summary\">\n<h2>Summary</h2>\n"
     file_html << "#{row['docstring'].split("\n")[0]}\n</div>\n<hr />"
 
-    includes_html(row)
+    file_html << includes_html(row['id'], row['path'])
     file_html << defines_html(row['id'])
     file_html << typedefs_html(row['id'])
     file_html << functions_overview_html(row['id'], row['path'])
@@ -67,7 +67,19 @@ class HtmlOutput < Output
     file_html << functions_html(row['id'], row['path'])
   end
 
-  def includes_html(row)
+  def includes_html(row, path)
+    if includes(row).count > 0
+      html = "<hr /><h2 id=\"includes\">Includes</h2>\n"
+      html << "<ul>"
+
+      html << includes(row).map do |include|
+        link("#{relative(path, include['path'])}.html", include['path'])
+      end.join("</li><li>")
+
+      html << "</ul>"
+    else
+      ""
+    end
   end
 
   def defines_html(row)

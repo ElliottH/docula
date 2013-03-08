@@ -3,7 +3,7 @@ class Output
     @options = options
 
     @files_stmt = db.prepare(
-      "SELECT id, path, includes, docstring FROM files"
+      "SELECT id, path, docstring FROM files"
     )
     @funcs_stmt = db.prepare(
       "SELECT id, name, type, return, docstring FROM functions
@@ -24,6 +24,11 @@ class Output
     @defs_stmt = db.prepare(
       "SELECT id, name, value, docstring FROM defines
        WHERE file_id = ?"
+    )
+    @inc_stmt = db.prepare(
+      "SELECT files.* FROM files
+       INNER JOIN includes on includes.include_id = files.id
+       WHERE includes.file_id = ?"
     )
 
     @type_stmt = db.prepare(
@@ -57,6 +62,10 @@ class Output
 
   def defines(file_id)
     @defs_stmt.execute(file_id)
+  end
+
+  def includes(file_id)
+    @inc_stmt.execute(file_id)
   end
 
   def type(name)

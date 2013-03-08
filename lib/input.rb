@@ -2,6 +2,7 @@ class Input
   def initialize(db, options)
     @options = options
     @db = db
+    @includes = {}
 
     @var_stmt = @db.prepare(
       "INSERT INTO variables (file_id, name, type, docstring)
@@ -22,6 +23,15 @@ class Input
     @typedef_stmt = @db.prepare(
       "INSERT INTO typedefs (file_id, value, name, docstring)
        VALUES (?, ?, ?, ?)"
+    )
+    @file_stmt = @db.prepare(
+      "SELECT id, path FROM files WHERE id = ?"
+    )
+    @files_stmt = @db.prepare(
+      "SELECT id, path FROM files WHERE path LIKE ?"
+    )
+    @include_stmt = @db.prepare(
+      "INSERT INTO includes (file_id, include_id) VALUES (?, ?)"
     )
   end
 
@@ -48,19 +58,29 @@ class Input
       end
     end
 
-    includes = []
     tree.directives.each do |directive|
       if directive.include?
-        includes << directive.includes
+        @includes[file_id] = directive.includes
       elsif directive.define?
         @defines_stmt.execute(file_id, directive.defines[0], directive.defines[1], directive.docstring[:text])
       end
     end
-    @db.execute("UPDATE files SET includes = ? WHERE id = ?", includes.join("|"), file_id)
-
 
     tree.typedefs.each do |typedef|
       @typedef_stmt.execute(file_id, typedef.from, typedef.to, typedef.docstring[:text])
+    end
+  end
+
+  def post_process
+    @includes.each do |file_id, include|
+      file_path = Pathname.new(@file_stmt.execute(file_id).first['path']).dirname
+
+      @files_stmt.execute("%#{File.basename(include)}").each do |file|
+        rel_path = Pathname.new(file['path']).relative_path_from(file_path)
+        if rel_path.to_s == include
+          @include_stmt.execute(file_id, file['id'])
+        end
+      end
     end
   end
 end

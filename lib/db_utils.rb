@@ -8,7 +8,6 @@ class DBUtils
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         path TEXT NOT NULL,
         hash TEXT NOT NULL,
-        includes TEXT,
         docstring TEXT,
         exist INTEGER DEFAULT 1)"
     )
@@ -48,7 +47,8 @@ class DBUtils
         name TEXT NOT NULL,
         value TEXT,
         docstring TEXT,
-        FOREIGN KEY(file_id) REFERENCES files (id) ON DELETE CASCADE)")
+        FOREIGN KEY(file_id) REFERENCES files (id) ON DELETE CASCADE)"
+    )
     db.execute(
       "CREATE TABLE IF NOT EXISTS typedefs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -56,6 +56,14 @@ class DBUtils
         value TEXT NOT NULL,
         name TEXT NOT NULL,
         docstring TEXT,
-        FOREIGN KEY(file_id) REFERENCES files (id) ON DELETE CASCADE)")
+        FOREIGN KEY(file_id) REFERENCES files (id) ON DELETE CASCADE)"
+    )
+    db.execute(
+       "CREATE TABLE IF NOT EXISTS includes (
+         file_id INTEGER NOT NULL,
+         include_id INTEGER NOT NULL,
+         FOREIGN KEY(file_id) REFERENCES files (id) ON DELETE CASCADE,
+         FOREIGN KEY(include_id) REFERENCES files (id) ON DELETE CASCADE)"
+    )
   end
 end

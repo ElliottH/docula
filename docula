@@ -91,5 +91,7 @@ Dir.recurse(options[:directory]) do |file|
 end
 db.execute("DELETE FROM files WHERE exist = 0")
 
+input.post_process
+
 output = options[:format].new(db, options)
 output.output
