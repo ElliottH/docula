@@ -49,7 +49,9 @@ class Input
 
       prototype = function.prototype.merge(function.docstring)
       if function.documented?
-        prototype[:arguments] = Utils.merge(prototype[:params], prototype[:arguments])
+        prototype[:arguments] = prototype[:arguments].zip(prototype[:params]).map do |a,d|
+          d ? a.merge(d) : a
+        end
         prototype.delete(:params)
       end
 

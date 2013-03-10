@@ -22,16 +22,3 @@ class String
     gsub(/^#{scan(/^\s*/).min_by{|l|l.length}}/, "")
   end
 end
-
-class Utils
-  def self.merge(a, b)
-    if a = []
-      return b
-    elsif b = []
-      return a
-    end
-    a.zip(b).collect do |array|
-        array.inject {|sum, n| n.merge(sum) if n }
-    end
-  end
-end
