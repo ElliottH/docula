@@ -49,6 +49,7 @@ class HtmlOutput < Output
     file_html << "<li><a href=\"#description\">description</a></li>\n"
     file_html << "<li><a href=\"#defines\">#defines</a></li>\n"
     file_html << "<li><a href=\"#typedefs\">typedefs</a></li>\n"
+    file_html << "<li><a href=\"#variables\">variables</a></li>\n"
     file_html << "<li><a href=\"#functions\">functions</a></li>\n"
     file_html << "</ul></div><hr />"
 
@@ -68,7 +69,7 @@ class HtmlOutput < Output
       file_html << "#{row['docstring']}"
     end
 
-    file_html << variables_html(row['id'])
+    file_html << variables_html(row['id'], row['path'])
     file_html << functions_html(row['id'], row['path'])
   end
 
@@ -119,7 +120,7 @@ class HtmlOutput < Output
 
       typedefs(row).each do |typedef|
         html << row_with_id("t#{typedef['id']}", typedef['value'], typedef['name'])
-          html << row("", typedef['docstring'])
+        html << row("", typedef['docstring'])
       end
 
       html << "</tbody></table>\n"
@@ -128,9 +129,21 @@ class HtmlOutput < Output
     end
   end
 
-  def variables_html(row)
+  def variables_html(row, path)
     if variables(row).count > 0
-      ""
+      html = "<hr /><h2 id=\"variables\">Variables</h2>\n"
+      html << "<table class=\"defs\">\n<tbody>\n"
+
+      variables(row).each do |variable|
+        html << row_with_id(
+                  "v#{variable['id']}",
+                  formatted_type(variable['type'], path),
+                  variable['name']
+                )
+        html << row("", variable['docstring'])
+      end
+
+      html << "</tbody></table>\n"
     else
       ""
     end
