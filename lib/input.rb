@@ -33,6 +33,9 @@ class Input
     @include_stmt = @db.prepare(
       "INSERT INTO includes (file_id, include_id) VALUES (?, ?)"
     )
+    @other_include_stmt = @db.prepare(
+      "INSERT INTO other_includes (file_id, path) VALUES (?, ?)"
+    )
   end
 
   def parse(tree, file_id)
@@ -60,7 +63,8 @@ class Input
 
     tree.directives.each do |directive|
       if directive.include?
-        @includes[file_id] = directive.includes
+        # This (confusing syntax) initialises the array if necessary and then appends
+        (@includes[file_id] ||= []) << directive.includes
       elsif directive.define?
         @defines_stmt.execute(file_id, directive.defines[0], directive.defines[1], directive.docstring[:text])
       end
@@ -72,14 +76,27 @@ class Input
   end
 
   def post_process
-    @includes.each do |file_id, include|
-      file_path = Pathname.new(@file_stmt.execute(file_id).first['path']).dirname
+    @includes.each do |file_id, inc|
+      matched = []
+      inc.each_with_index do |include, index|
+        file_path = Pathname.new(@file_stmt.execute(file_id).first['path']).dirname
 
-      @files_stmt.execute("%#{File.basename(include)}").each do |file|
-        rel_path = Pathname.new(file['path']).relative_path_from(file_path)
-        if rel_path.to_s == include
-          @include_stmt.execute(file_id, file['id'])
+        @files_stmt.execute("%#{File.basename(include)}").each do |file|
+          rel_path = Pathname.new(file['path']).relative_path_from(file_path)
+
+          if rel_path.to_s == include
+            @include_stmt.execute(file_id, file['id'])
+            matched << index
+          end
         end
+      end
+      matched.each { |v| inc.delete_at(v) }
+    end
+    @includes.delete_if { |_,v| v == [] }
+
+    @includes.each do |file_id, include|
+      include.each do |include|
+        @other_include_stmt.execute(file_id, include)
       end
     end
   end

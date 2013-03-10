@@ -8,6 +8,7 @@
  */
 
 #include "test_fib.h"
+#include <stdlib.h>
 
 /**
  * Calculates the nth Fibonacci number recursively.

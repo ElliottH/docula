@@ -59,11 +59,18 @@ class DBUtils
         FOREIGN KEY(file_id) REFERENCES files (id) ON DELETE CASCADE)"
     )
     db.execute(
-       "CREATE TABLE IF NOT EXISTS includes (
-         file_id INTEGER NOT NULL,
-         include_id INTEGER NOT NULL,
-         FOREIGN KEY(file_id) REFERENCES files (id) ON DELETE CASCADE,
-         FOREIGN KEY(include_id) REFERENCES files (id) ON DELETE CASCADE)"
+      "CREATE TABLE IF NOT EXISTS includes (
+        file_id INTEGER NOT NULL,
+        include_id INTEGER NOT NULL,
+        FOREIGN KEY(file_id) REFERENCES files (id) ON DELETE CASCADE,
+        FOREIGN KEY(include_id) REFERENCES files (id) ON DELETE CASCADE)"
+    )
+    db.execute(
+      "CREATE TABLE IF NOT EXISTS other_includes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        file_id INTEGER NOT NULL,
+        path TEXT NOT NULL,
+        FOREIGN KEY(file_id) REFERENCES files (id) ON DELETE CASCADE)"
     )
   end
 end

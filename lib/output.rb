@@ -30,6 +30,9 @@ class Output
        INNER JOIN includes on includes.include_id = files.id
        WHERE includes.file_id = ?"
     )
+    @other_inc_stmt = db.prepare(
+      "SELECT * FROM other_includes
+       WHERE file_id = ?")
 
     @type_stmt = db.prepare(
       "SELECT types.*, files.path FROM
@@ -66,6 +69,10 @@ class Output
 
   def includes(file_id)
     @inc_stmt.execute(file_id)
+  end
+
+  def other_includes(file_id)
+    @other_inc_stmt.execute(file_id)
   end
 
   def type(name)
