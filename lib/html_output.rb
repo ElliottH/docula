@@ -63,13 +63,13 @@ class HtmlOutput < Output
     file_html << defines_html(row['id'])
     file_html << typedefs_html(row['id'])
     file_html << functions_overview_html(row['id'], row['path'])
+    file_html << variables_html(row['id'], row['path'])
 
     if row['docstring'] != ""
       file_html << "<hr />\n<h2 id=\"description\">Description</h2>\n"
       file_html << "#{row['docstring']}"
     end
 
-    file_html << variables_html(row['id'], row['path'])
     file_html << functions_html(row['id'], row['path'])
   end
 
@@ -100,7 +100,8 @@ class HtmlOutput < Output
   def defines_html(row)
     if defines(row).count > 0
       html = "<hr /><h2 id=\"defines\">Defines</h2>\n"
-      html << "<table class=\"defs\">\n<tbody>\n"
+      html << "<table class=\"defs\">\n"
+      html << "<thead><th>Name</th><th>Value</th></thead><tbody>"
 
       defines(row).each do |define|
         html << row_with_id("d#{define['id']}", define['name'], define['value'])
@@ -116,10 +117,11 @@ class HtmlOutput < Output
   def typedefs_html(row)
     if typedefs(row).count > 0
       html = "<hr /><h2 id=\"typedefs\">Typedefs</h2>\n"
-      html << "<table class=\"defs\">\n<tbody>\n"
+      html << "<table class=\"defs\">\n"
+      html << "<thead><th>Name</th><th>Value</th></thead><tbody>"
 
       typedefs(row).each do |typedef|
-        html << row_with_id("t#{typedef['id']}", typedef['value'], typedef['name'])
+        html << row_with_id("t#{typedef['id']}", typedef['name'], typedef['value'])
         html << row("", typedef['docstring'])
       end
 
@@ -132,7 +134,8 @@ class HtmlOutput < Output
   def variables_html(row, path)
     if variables(row).count > 0
       html = "<hr /><h2 id=\"variables\">Variables</h2>\n"
-      html << "<table class=\"defs\">\n<tbody>\n"
+      html << "<table class=\"defs\">\n"
+      html << "<thead><th>Type</th><th>Name</th></thead><tbody>"
 
       variables(row).each do |variable|
         html << row_with_id(
@@ -178,7 +181,7 @@ class HtmlOutput < Output
   end
 
   def functions_html(row, path)
-    "<hr /><h2 id=\"\">Function Documentation</h2>\n" <<
+    "<hr /><h2 id=\"\">Function Documentation</h2>\n<div id=\"fdefs\">" <<
     functions(row).map do |function|
       html = "<div id=\"f#{function['id']}\"><table><tbody><tr>"
       html << "<td>#{formatted_type(function['type'], path)}</td>"
@@ -191,18 +194,27 @@ class HtmlOutput < Output
 
       html << "</tr>\n<tr><td></td><td></td><td>)</td></tr></tbody></table>"
       html << "<span class=\"docstring\">#{function['docstring']}</span>"
-      html << "<span class=\"arguments\">Arguments:\n<dl>"
 
-      html << arguments(function['id']).map do |argument|
-        "<dt>#{argument['name']}</dt>"
-        "<dd><span class=\"flow\">#{argument['flow']}</span>"
-        "#{argument['docstring']}</dd>"
-      end.join("\n")
+      if arguments(function['id']).count > 0
+        html << "<br /><span class=\"arguments\"><span class=\"bf\">Arguments:</span>\n<dl>"
 
-      html << "</dl></span>"
-      html << "<span class=\"returns\">Returns:\n#{function['return']}</span>"
+        html << arguments(function['id']).map do |argument|
+          <<-eos.unindent
+          <dt>#{argument['name']}</dt>
+          <dd><span class=\"flow\">#{argument['flow']}</span>
+          #{argument['docstring']}</dd>
+          eos
+        end.join("\n")
+
+        html << "</dl></span>"
+      end
+
+      if function['return']
+        html << "<br /><span class=\"returns\"><span class=\"bf\">Returns:</span>\n#{function['return']}</span>"
+      end
+
       html << "</div>"
-    end.join("\n")
+    end.join("\n") << "</div>"
   end
 
   def row(*entries)
@@ -249,7 +261,45 @@ class HtmlOutput < Output
     eos
   end
 
+  @@base03  = "#002b36"
+  @@base02  = "#073642"
+  @@base01  = "#586e75"
+  @@base00  = "#657b83"
+  @@base0   = "#839496"
+  @@base1   = "#93a1a1"
+  @@base2   = "#eee8d5"
+  @@base3   = "#fdf6e3"
+  @@yellow  = "#b58900"
+  @@orange  = "#cb4b16"
+  @@red     = "#dc322f"
+  @@magenta = "#d33682"
+  @@violet  = "#6c71c4"
+  @@blue    = "#268bd2"
+  @@cyan    = "#2aa198"
+  @@green   = "#859900"
+
   @@stylesheet = <<-eos.unindent
+    html * {
+      color-profile: sRGB;
+      rendering-intent: auto;
+    }
+    html {
+      background-color: #{@@base3};
+      color: #{@@base02};
+      * {
+        color: #{@@base02};
+      }
+    }
+    h1,h2,h3,h4,h5,h6 {
+      color: #{@@base02};
+      border-color: #{@@base00};
+    }
+    a, a:active {
+      color: #{@@blue};
+    }
+    a:visited {
+      color: #{@@violet};
+    }
     div#header {
       width: 100%;
       text-align: center;
@@ -262,26 +312,61 @@ class HtmlOutput < Output
       display: inline;
       margin: 0 0.5em;
     }
-    table {
-
+    div#fdefs div {
+      margin-bottom: 1em;
+      padding: 0.25em;
     }
-    table th {
-      width: 100%;
-      border-bottom: 1px solid black;
+    div#fdefs div:nth-child(even) {
+      background-color: #{@@base2};
+    }
+    table {
+      color: #{@@base02};
     }
     table.defs {
       width: 100%;
-      border: 1px solid black;
+      margin-left: auto;
+      margin-right: auto;
       margin-bottom: 3em;
+      border-collapse:collapse;
+    }
+    table.defs th {
+      text-align: left;
+      padding-bottom: 1em;
+    }
+    table.defs th:first-child{
+      text-align: right;
+      padding-right: 1em;
+    }
+    table.defs tr {
+      margin: 0;
+      padding: 0;
     }
     table.defs tbody tr td:first-child {
       text-align: right;
+      padding-right: 1em;
     }
     table.defs tbody tr:nth-child(even) {
-      color: #555;
+      color: #{@@base01};
+    }
+    table.defs tbody tr:nth-child(3n), table.defs tbody tr:nth-child(4n) {
+      background-color: #{@@base2};
+      border-color: #{@@blue};
+      border-width: 0 1 1 0;
     }
     span.docstring, span.arguments, span.returns {
       display: block;
+    }
+    span.bf {
+      font-weight: bold;
+    }
+    span.flow {
+      color: #{@@base1}
+    }
+    hr {
+      border: 0;
+      height: 0;
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
     }
   eos
 end
