@@ -15,7 +15,7 @@ class HtmlOutput < Output
   end
 
   def output
-    files_html = header("Files") << "<body>\n"
+    files_html = header("Files", ".") << "<body>\n"
     files_html << "<table><thead><th>Files</th></thead><tbody>"
 
     files.each do |row|
@@ -42,7 +42,7 @@ class HtmlOutput < Output
   end
 
   def file_html(row)
-    file_html = header(row['path']) << "<body>\n"
+    file_html = header(row['path'], row['path']) << "<body>\n"
     file_html << "<div id=\"header\">\n"
     file_html << "<h1>#{row['path']}</h1>\n"
     file_html << "<ul id=\"links\">\n"
@@ -51,19 +51,24 @@ class HtmlOutput < Output
     file_html << "<li><a href=\"#typedefs\">typedefs</a></li>\n"
     file_html << "<li><a href=\"#functions\">functions</a></li>\n"
     file_html << "</ul></div><hr />"
-    file_html << "<div id=\"summary\">\n<h2>Summary</h2>\n"
-    file_html << "#{row['docstring'].split("\n")[0]}\n</div>\n"
+
+    if row['docstring'] != ""
+      file_html << "<div id=\"summary\">\n<h2>Summary</h2>\n"
+      file_html << "#{row['docstring'].split("\n")[0]}\n"
+      file_html << "<br />#{link("#description", "Read More")}</div>\n"
+    end
 
     file_html << includes_html(row['id'], row['path'])
     file_html << defines_html(row['id'])
     file_html << typedefs_html(row['id'])
     file_html << functions_overview_html(row['id'], row['path'])
 
-    file_html << "<hr />\n<h2 id=\"description\">Description</h2>\n"
-    file_html << "#{row['docstring']}"
+    if row['docstring'] != ""
+      file_html << "<hr />\n<h2 id=\"description\">Description</h2>\n"
+      file_html << "#{row['docstring']}"
+    end
 
     file_html << variables_html(row['id'])
-    file_html << "<hr />\n<h2>Function Documentation</h2>\n"
     file_html << functions_html(row['id'], row['path'])
   end
 
@@ -83,7 +88,6 @@ class HtmlOutput < Output
           include['path']
         end.join("</li><li>")
       end
-      p included
       html << included.join("</li><li>")
 
       html << "</li></ul>"
@@ -94,8 +98,8 @@ class HtmlOutput < Output
 
   def defines_html(row)
     if defines(row).count > 0
-      html = "<table id=\"defines\" class=\"defs\">\n"
-      html << "<thead><th colspan=\"2\">#defines</th></thead>\n<tbody>\n"
+      html = "<hr /><h2 id=\"defines\">Defines</h2>\n"
+      html << "<table class=\"defs\">\n<tbody>\n"
 
       defines(row).each do |define|
         html << row_with_id("d#{define['id']}", define['name'], define['value'])
@@ -110,8 +114,8 @@ class HtmlOutput < Output
 
   def typedefs_html(row)
     if typedefs(row).count > 0
-      html = "<table id=\"typedefs\" class=\"defs\">\n"
-      html << "<thead><th colspan=\"2\">Typedefs</th></thead>\n<tbody>\n"
+      html = "<hr /><h2 id=\"typedefs\">Typedefs</h2>\n"
+      html << "<table class=\"defs\">\n<tbody>\n"
 
       typedefs(row).each do |typedef|
         html << row_with_id("t#{typedef['id']}", typedef['value'], typedef['name'])
@@ -134,8 +138,8 @@ class HtmlOutput < Output
 
   def functions_overview_html(row, path)
     if functions(row).count > 0
-      html = "<table id=\"functions\" class=\"defs\">\n"
-      html << "<thead><th colspan=\"2\">Functions</th></thead>\n<tbody>\n"
+      html = "<hr /><h2 id=\"functions\">Functions</h2>\n"
+      html << "<table class=\"defs\">\n<tbody>\n"
 
       functions(row).each do |function|
         html << "<tr><td>#{formatted_type(function['type'], path)}</td>"
@@ -161,6 +165,7 @@ class HtmlOutput < Output
   end
 
   def functions_html(row, path)
+    "<hr /><h2 id=\"\">Function Documentation</h2>\n" <<
     functions(row).map do |function|
       html = "<div id=\"f#{function['id']}\"><table><tbody><tr>"
       html << "<td>#{formatted_type(function['type'], path)}</td>"
@@ -200,7 +205,6 @@ class HtmlOutput < Output
     info = type(type)
     if info
       href = relative(current_path, info['path'])
-      #href = Pathname.new(info['path']).relative_path_from(Pathname.new(current_path)).to_s
       href << ".html#"
       href << (info['define'] ? "d" : "t")
       href << info['id'].to_s
@@ -222,11 +226,11 @@ class HtmlOutput < Output
     "<a href=\"#{link}\">#{contents}</a>"
   end
 
-  def header(title)
+  def header(title, path)
     <<-eos.unindent
       <html>
         <head>
-          <link rel=\"stylesheet\" href=\"style.css\" type=\"text/css\" />
+          <link rel=\"stylesheet\" href=\"#{relative(path, "style.css")}\" type=\"text/css\" />
           <title>#{title}</title>
         </head>
     eos
