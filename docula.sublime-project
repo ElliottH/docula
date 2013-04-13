@@ -2,7 +2,7 @@
     "folders":
     [
         {
-            "path": "~/Dropbox/Uni/Docula",
+            "path": ".",
             "file_exclude_patterns": [".gitignore", "*.sublime-*"]
         }
     ]

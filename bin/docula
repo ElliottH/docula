@@ -8,14 +8,15 @@ require 'rubygems'
 require 'sqlite3'
 require 'treetop'
 
-require 'lib/grammars/csimple_nodes'
-require 'lib/grammars/csimple'
+require 'docula/grammars/csimple_nodes'
+require 'docula/grammars/csimple'
 
-require 'lib/utils'
-require 'lib/db_utils'
+require 'docula/utils'
+require 'docula/db_utils'
 
-require 'lib/input'
-require 'lib/html_output'
+require 'docula/input'
+require 'docula/html_output'
+
 
 parsers = {
             '.c' => CSimpleParser,
@@ -42,7 +43,7 @@ OptionParser.new do |o|
     options[:force] = f
   end
   o.on("--format FORMAT", outputs, "Select output format",
-          "  (#{outputs.keys})") do |format|
+          "  (#{outputs.keys.join(", ")})") do |format|
     options[:format] = format
   end
   o.on_tail('-h', '--help', 'Output this help and exit.') { puts o; exit }
@@ -79,7 +80,7 @@ Dir.recurse(options[:directory]) do |file|
       tree = parser.parse(contents)
       if tree
         print "Success!\n" if options[:verbose]
-        file_ins_stmt.execute(path, hash, tree.docstrings.map { |doc| doc.strip }.join('\n'))
+        file_ins_stmt.execute(path, hash, tree.docstrings.map { |doc| doc.strip }.join("\n"))
         input.parse(tree, db.last_insert_row_id)
       else
         print "Failed!\n#{parser.failure_reason}\n" if options[:verbose]

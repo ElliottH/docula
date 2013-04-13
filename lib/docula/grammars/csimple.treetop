@@ -63,6 +63,7 @@ grammar CSimple
   end
   rule argument
     type name
+    / 'void'
     <ArgumentNode>
   end
 
@@ -102,7 +103,7 @@ grammar CSimple
   end
 
   rule directive
-    docstring? _ '#' ( !EOL .)* EOL <DirectiveNode>
+    docstring? _ '#' ( !UNESC_EOL .)* UNESC_EOL <DirectiveNode>
   end
 
   rule typedef
@@ -155,7 +156,11 @@ grammar CSimple
 
   rule struct_or_union_definition
     LEFTCURLY
-    (type name ( _ COLON (name / value))? SEMICOLON)+
+    (
+      type name ( _ COLON (name / value))? SEMICOLON
+      / docstring _
+      / comment _
+    )+
     RIGHTCURLY
   end
 
@@ -277,6 +282,9 @@ grammar CSimple
   end
   rule EOL
     [\n]
+  end
+  rule UNESC_EOL
+    !'\\' EOL
   end
 
   rule EQUAL

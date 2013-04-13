@@ -1,7 +1,9 @@
 .DS_Store
 *.sublime-workspace
 
-lib/grammars/*.rb
+lib/docula/grammars/*.rb
 
 .docula/
 output/
+
+*.gem

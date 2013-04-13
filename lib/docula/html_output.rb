@@ -1,4 +1,4 @@
-require 'lib/output'
+require 'docula/output'
 
 require 'fileutils'
 
