@@ -213,6 +213,10 @@ class HtmlOutput < Output
         html << "<br /><span class=\"returns\"><span class=\"bf\">Returns:</span>\n#{function['return']}</span>"
       end
 
+      if (equiv = equiv_function(function['id']))
+        html << "<span class=\"also\"><span class=\"bf\">See also:</span>\n"
+        html << equiv.map { |e| func_by_id(e, path) }.join(', ') << "</span>"
+      end
       html << "</div>"
     end.join("\n") << "</div>"
   end
@@ -245,6 +249,14 @@ class HtmlOutput < Output
     else
       "<tr id=\"#{id}\"><td>#{entries.join("</td><td>")}</td></tr>\n"
     end
+  end
+
+  def func_by_id(id, current_path)
+    func = function(id)
+    link(
+      "#{relative(current_path, func['path'])}.html#f#{func['id']}",
+      "#{File.basename(func['path'])}##{func['name']}"
+    )
   end
 
   def link(link, contents)
@@ -353,7 +365,7 @@ class HtmlOutput < Output
       border-color: #{@@blue};
       border-width: 0 1 1 0;
     }
-    span.docstring, span.arguments, span.returns {
+    span.docstring, span.arguments, span.returns, span.also {
       display: block;
     }
     span.bf {
