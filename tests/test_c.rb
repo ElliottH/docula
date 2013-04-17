@@ -3,7 +3,7 @@ require 'treetop'
 
 require 'test/unit'
 
-require 'grammars/c'
+require 'docula/grammars/c'
 
 require './tests/c/test_c_comments'
 require './tests/c/test_c_variables'

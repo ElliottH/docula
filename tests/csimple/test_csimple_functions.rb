@@ -3,7 +3,7 @@ require 'treetop'
 
 require 'test/unit'
 
-require 'grammars/csimple.rb'
+require 'docula/grammars/csimple.rb'
 
 class TestCSimpleFunctions < Test::Unit::TestCase
   def setup

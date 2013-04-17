@@ -3,8 +3,8 @@ require 'treetop'
 
 require 'test/unit'
 
-require 'grammars/csimple_nodes'
-require 'grammars/csimple'
+require 'docula/grammars/csimple_nodes'
+require 'docula/grammars/csimple'
 
 require './tests/csimple/test_csimple_comments'
 require './tests/csimple/test_csimple_variables'

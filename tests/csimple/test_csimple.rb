@@ -1,5 +1,5 @@
 require 'treetop'
-require 'grammars/csimple'
+require 'docula/grammars/csimple'
 
 require 'test/unit'
 
