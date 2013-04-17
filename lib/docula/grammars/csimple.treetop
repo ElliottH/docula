@@ -62,9 +62,8 @@ grammar CSimple
     <ArgumentsNode>
   end
   rule argument
-    type name
-    / 'void'
-    <ArgumentNode>
+    type name <ArgumentNode>
+    / 'void' <ArgumentNode>
   end
 
   rule function_body
