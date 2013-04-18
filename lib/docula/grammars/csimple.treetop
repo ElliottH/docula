@@ -12,6 +12,7 @@ grammar CSimple
     (
       extern_c_block
       / function
+      / forward_declaration
       / variable
       / directive
       / typedef
@@ -27,6 +28,10 @@ grammar CSimple
       start+
     RIGHTCURLY
     <ExternBlockNode>
+  end
+
+  rule forward_declaration
+    'struct' WHITESPACE name SEMICOLON
   end
 
   rule variable
