@@ -145,9 +145,9 @@ grammar CSimple
       'char' / 'enum' / 'float' / 'int' / 'long' / 'short' / 'void'
   end
   rule type
-    storage_class?
-    ('unsigned' _)?
-    ('const' _)?
+    ('extern' WHITESPACE '"C"' WHITESPACE)?
+    storage_class*
+    (('unsigned' _) / ('const' _))*
     (
       struct_or_union
       / enum_definition
