@@ -87,21 +87,60 @@ module CSimple
 
   class StartNode < BaseNode
     def functions
-      elements.select { |element| element.class == FunctionNode }
+      elems = elements.select { |element| element.class == FunctionNode }
+      if externs?
+        elems.concat(externs(:functions)).flatten
+      else
+        elems
+      end
     end
     def directives
-      elements.select { |element| element.class == DirectiveNode }
+      elems = elements.select { |element| element.class == DirectiveNode }
+      if externs?
+        elems.concat(externs(:directives)).flatten
+      else
+        elems
+      end
     end
     def variables
-      elements.select { |element| element.class == VariableNode }
+      elems = elements.select { |element| element.class == VariableNode }
+      if externs?
+        elems.concat(externs(:variables)).flatten
+      else
+        elems
+      end
     end
     def docstrings
-      elements.select do |element|
+      elems = elements.select do |element|
         element.class == DocstringNode && element.file?
+      end
+      if externs?
+        elems.concat(externs(:docstrings)).flatten
+      else
+        elems
       end
     end
     def typedefs
-      elements.select { |element| element.class == TypeDefNode }
+      elems = elements.select { |element| element.class == TypeDefNode }
+      if externs?
+        elems.concat(externs(:typedefs)).flatten
+      else
+        elems
+      end
+    end
+
+    def externs(symb)
+      if externs?
+        elements.select { |element| element.class == ExternBlockNode }.map do |element|
+          element.send(symb)
+        end
+      else
+        nil
+      end
+    end
+
+    def externs?
+      !elements.detect { |element| element.class == ExternBlockNode }.nil?
     end
   end
 
@@ -187,6 +226,9 @@ module CSimple
     end
   end
   class FunctionBodyNode < BaseNode
+  end
+
+  class ExternBlockNode < StartNode
   end
 
   class TypeNode < BaseNode

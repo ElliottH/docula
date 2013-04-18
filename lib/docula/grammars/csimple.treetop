@@ -10,7 +10,8 @@
 grammar CSimple
   rule start
     (
-      function
+      extern_c_block
+      / function
       / variable
       / directive
       / typedef
@@ -19,6 +20,13 @@ grammar CSimple
       / WHITESPACE
     )+
     <StartNode>
+  end
+
+  rule extern_c_block
+    'extern' WHITESPACE '"C"' _ LEFTCURLY
+      start+
+    RIGHTCURLY
+    <ExternBlockNode>
   end
 
   rule variable
