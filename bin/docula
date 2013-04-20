@@ -77,15 +77,21 @@ Dir.recurse(options[:directory]) do |file|
     if row == nil || row['hash'] != hash || options[:force]
       file_del_stmt.execute(path)
       parser = parsers[File.extname(file)].new
-      tree = parser.parse(contents)
-      if tree
-        print "Success!\n" if options[:verbose]
-        file_ins_stmt.execute(path, hash, tree.docstrings.map { |doc| doc.strip }.join("\n"))
-        input.parse(tree, db.last_insert_row_id)
-      else
-        print "Failed!\n#{parser.failure_reason}\n" if options[:verbose]
-        print "Failed to parse #{path} with #{parsers[File.extname(file)]}!\n" unless options[:verbose]
+      begin
+        tree = parser.parse(contents)
+        if tree
+          print "Success!\n" if options[:verbose]
+          file_ins_stmt.execute(path, hash, tree.docstrings.map { |doc| doc.strip }.join("\n"))
+          input.parse(tree, db.last_insert_row_id)
+        else
+          print "Failed!\n#{parser.failure_reason}\n" if options[:verbose]
+          print "Failed to parse #{path} with #{parsers[File.extname(file)]}!\n" unless options[:verbose]
+        end
+      rescue ArgumentError => e
+        print "Failed!\n#{e.to_s}"
       end
+    else
+      print "Using cached values.\n" if options[:verbose]
     end
     file_exist_stmt.execute(row['id']) if row
   end
