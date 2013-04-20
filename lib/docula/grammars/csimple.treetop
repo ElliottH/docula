@@ -80,9 +80,14 @@ grammar CSimple
   end
 
   rule function_body
-    LEFTCURLY function_body* RIGHTCURLY <FunctionBodyNode>
-    / (string) <FunctionBodyNode>
-    / (!["{}'] .)+ <FunctionBodyNode>
+    function_body_item+ <FunctionBodyNode>
+  end
+  rule function_body_item
+    LEFTCURLY function_body* RIGHTCURLY
+    / comment
+    / string
+    / char_constant
+    / (!(["{}'] / '/*' / '//' / '# ') .)+
   end
 
   rule comment
@@ -92,11 +97,14 @@ grammar CSimple
   end
   rule multiline_comment
     '/*'
-    (
-      !'*/'
-      (. / EOL)
-    )*
+    comment_contents?
     '*/'
+  end
+  rule end_comment
+    '*/'
+  end
+  rule comment_contents
+    (!end_comment (. / EOL))*
   end
 
   rule docstring
@@ -107,7 +115,7 @@ grammar CSimple
   rule multiline_docstring
     '/**'
     (
-      !'*/'
+      !end_comment
       (. / EOL)
     )*
     '*/'
