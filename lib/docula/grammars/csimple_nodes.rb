@@ -152,7 +152,7 @@ module CSimple
     end
 
     def includes
-      text_value.match(/#include\s+(?:<|")(.*?)(?:>|")/).captures.first
+      text_value.match(/#include\s+(?:<|")?(.*?)(?:>|")?/).captures.first
     end
 
     def define?

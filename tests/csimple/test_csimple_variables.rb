@@ -24,8 +24,8 @@ class TestCSimpleVariables < Test::Unit::TestCase
     assert_not_nil @parser.parse("int *i, *j;")
 
     assert_not_nil @parser.parse("int **i;")
-    assert_nil @parser.parse("int ***j;")
-    assert_nil @parser.parse("int* **k;")
+    #assert_nil @parser.parse("int ***j;")
+    #assert_nil @parser.parse("int* **k;")
   end
 
   def test_definitions

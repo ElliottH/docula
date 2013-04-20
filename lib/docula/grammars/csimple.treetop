@@ -194,7 +194,7 @@ grammar CSimple
   end
 
   rule name
-    STAR 0..2
+    STAR*
     !RESERVED ([a-zA-Z_] [a-zA-Z0-9_]*)
     array*
     _
@@ -202,7 +202,7 @@ grammar CSimple
   end
 
   rule array
-    LEFTSQUARE (name / value) RIGHTSQUARE
+    LEFTSQUARE (name / value)? RIGHTSQUARE
   end
 
   rule string
@@ -210,12 +210,16 @@ grammar CSimple
   end
 
   rule char_constant
-    QUOTE char_body+ QUOTE
+    QUOTE_NOWS char_body QUOTE_NOWS
   end
 
   rule char_body
-    [^'\\\n\r]
+    !char_chars .
     / escape_sequence
+  end
+
+  rule char_chars
+    ['\\\n\r]
   end
 
   rule string_body
@@ -368,6 +372,7 @@ grammar CSimple
   rule LEFT '(' _ end
   rule RIGHT ')' _ end
   rule QUOTE "'" _ end
+  rule QUOTE_NOWS "'" end
   rule DOUBLEQUOTE '"' _ end
   rule BACKSLASH '\\' _ end
 end
