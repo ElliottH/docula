@@ -150,12 +150,12 @@ grammar CSimple
     ) WHITESPACE
   end
   rule TYPE
-      'char' / 'enum' / 'float' / 'int' / 'long' / 'short' / 'void'
+      'char' / 'enum' / 'float' / 'int' / 'long' / 'long long' / 'short' / 'void'
   end
   rule type
     ('extern' WHITESPACE '"C"' WHITESPACE)?
     storage_class*
-    (('unsigned' _) / ('const' _))*
+    (('unsigned' _) / ('signed' _ ) / ('const' _) / ('inline' _))*
     (
       struct_or_union
       / enum_definition
