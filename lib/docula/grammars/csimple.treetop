@@ -178,6 +178,7 @@ grammar CSimple
     LEFTCURLY
     (
       type name ( _ COLON (name / value))? SEMICOLON
+      / function_prototype _
       / docstring _
       / comment _
     )+
