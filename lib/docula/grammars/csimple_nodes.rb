@@ -104,11 +104,12 @@ module CSimple
     end
     def variables
       elems = elements.select { |element| element.class == VariableNode }
-      if externs?
-        elems.concat(externs(:variables)).flatten
-      else
-        elems
-      end
+      structs = elements.select { |elem| elem.class == StructUnionNode && elem.Name? }
+
+      elems.concat(structs).flatten! if structs
+      elems.concat(externs(:variables)).flatten! if externs?
+
+      elems
     end
     def docstrings
       elems = elements.select do |element|
@@ -229,6 +230,43 @@ module CSimple
   end
 
   class ExternBlockNode < StartNode
+  end
+
+  class StructUnionNode < BaseNode
+    include Documentable
+
+    def Type
+      type = elements.detect { |elem| elem.class == NameNode }.text_value
+      su = elements.detect { |elem| elem.class == SUNode }.text_value
+      "#{su} #{type}"
+    end
+
+    def Name
+      if Name?
+        elements.reverse_each.detect { |elem| elem.class == NameNode }.text_value
+      end
+    end
+
+    def Name?
+      elements.select { |elem| elem.class == NameNode }.count > 1
+    end
+
+    def definition
+      elements.detect { |elem| elem.class == StructUnionDefinitionNode }
+    end
+  end
+
+  class StructUnionDefinitionNode < BaseNode
+  end
+
+  class SUNode < BaseNode
+    def struct?
+      text_value == 'struct'
+    end
+
+    def union?
+      text_value == 'union'
+    end
   end
 
   class TypeNode < BaseNode

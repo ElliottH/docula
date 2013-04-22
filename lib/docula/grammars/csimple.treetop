@@ -12,7 +12,7 @@ grammar CSimple
     (
       extern_c_block
       / function
-      / forward_declaration
+      / struct_union_declaration
       / variable
       / directive
       / typedef
@@ -30,8 +30,31 @@ grammar CSimple
     <ExternBlockNode>
   end
 
-  rule forward_declaration
-    'struct' WHITESPACE name SEMICOLON
+  rule struct_union_declaration
+    docstring? _
+    su WHITESPACE name
+    struct_union_definition?
+    name?
+    SEMICOLON
+    <StructUnionNode>
+  end
+
+  rule su
+    'struct' <SUNode> / 'union' <SUNode>
+  end
+
+  rule struct_union_definition
+    LEFTCURLY
+    (
+      (
+        type name ( _ COLON (name / value))?
+        / function_prototype
+      ) SEMICOLON
+      / docstring _
+      / comment _
+    )+
+    RIGHTCURLY
+    <StructUnionDefinitionNode>
   end
 
   rule variable
@@ -171,7 +194,7 @@ grammar CSimple
       'union'
     ) WHITESPACE
     name
-    struct_or_union_definition?
+    #struct_or_union_definition?
   end
 
   rule struct_or_union_definition
