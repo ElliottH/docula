@@ -25,6 +25,13 @@ class Output
       "SELECT id, name, value, docstring FROM defines
        WHERE file_id = ?"
     )
+    @su_stmt = db.prepare(
+      "SELECT id, su, type, docstring FROM structs_unions
+       WHERE file_id = ?"
+    )
+    @elems_stmt = db.prepare(
+      "SELECT id, name, type, is_func, docstring FROM elements
+       WHERE su_id = ?")
     @inc_stmt = db.prepare(
       "SELECT files.* FROM files
        INNER JOIN includes on includes.include_id = files.id
@@ -39,6 +46,9 @@ class Output
        (SELECT id, file_id, name, 'typedef' FROM typedefs WHERE typedefs.name = ?
         UNION ALL
         SELECT id, file_id, name, 'define' FROM defines WHERE defines.name = ?
+        UNION ALL
+        SELECT id, file_id, su || ' ' || type, su FROM structs_unions
+        WHERE structs_unions.su || ' ' || structs_unions.type = ?
        ) AS 'types' INNER JOIN files ON types.file_id = files.id"
     )
 
@@ -83,6 +93,14 @@ class Output
     @defs_stmt.execute(file_id)
   end
 
+  def structs_unions(file_id)
+    @su_stmt.execute(file_id)
+  end
+
+  def elements(su_id)
+    @elems_stmt.execute(su_id)
+  end
+
   def includes(file_id)
     @inc_stmt.execute(file_id)
   end
@@ -92,7 +110,7 @@ class Output
   end
 
   def type(name)
-    @type_stmt.execute(name, name).first
+    @type_stmt.execute(name, name, name).first
   end
 
   def equiv_args(first, second)

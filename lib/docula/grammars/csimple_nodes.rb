@@ -130,6 +130,17 @@ module CSimple
       end
     end
 
+    def structs_unions
+      elems = elements.select do |element|
+        element.class == StructUnionNode && !element.definition.nil?
+      end
+      if externs?
+        elems.concat(externs(:structs_unions)).flatten
+      else
+        elems
+      end
+    end
+
     def externs(symb)
       if externs?
         elements.select { |element| element.class == ExternBlockNode }.map do |element|
@@ -238,7 +249,15 @@ module CSimple
     def Type
       type = elements.detect { |elem| elem.class == NameNode }.text_value
       su = elements.detect { |elem| elem.class == SUNode }.text_value
-      "#{su} #{type}"
+      "#{su} #{type}".strip
+    end
+
+    def raw_type
+      elements.detect { |elem| elem.class == NameNode }.text_value.strip
+    end
+
+    def struct_or_union
+      elements.detect { |elem| elem.class == SUNode }.text_value
     end
 
     def Name
@@ -252,11 +271,23 @@ module CSimple
     end
 
     def definition
-      elements.detect { |elem| elem.class == StructUnionDefinitionNode }
+      elements.detect { |elem| elem.class == StructUnionDefinitionsNode }.definition
     end
   end
 
-  class StructUnionDefinitionNode < BaseNode
+  module StructUnionDefinitionNode
+    def function?
+      self.class == FunctionNode
+    end
+
+    def variable?
+      self.class == VariableNode
+    end
+  end
+  class StructUnionDefinitionsNode < BaseNode
+    def definition
+      elements[1].elements.select { |elem| elem.kind_of? StructUnionDefinitionNode }
+    end
   end
 
   class SUNode < BaseNode

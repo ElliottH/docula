@@ -64,6 +64,7 @@ class HtmlOutput < Output
     file_html << typedefs_html(row['id'])
     file_html << functions_overview_html(row['id'], row['path'])
     file_html << variables_html(row['id'], row['path'])
+    file_html << structs_html(row['id'], row['path'])
 
     if row['docstring'] != ""
       file_html << "<hr />\n<h2 id=\"description\">Description</h2>\n"
@@ -152,6 +153,34 @@ class HtmlOutput < Output
     end
   end
 
+  def structs_html(id, path)
+    "<hr /><h2 id=\"structs\">structs &amp; unions</h2><div id=\"fdefs\">\n" <<
+    "<div>" <<
+    structs_unions(id).map do |su|
+      "<table>" <<
+      row_with_id(
+        "s#{su['id']}",
+        su['su'],
+        su['type'],
+        "{"
+      ) <<
+      elements(su['id']).map do |elem|
+        row(
+          "", "", "",
+          formatted_type(elem['type'], path),
+          elem['name']
+        )
+      end.join("\n") <<
+      row(
+        "", "",
+        "}"
+      ) <<
+      "</table></div>" <<
+      su['docstring']
+    end.join("\n") <<
+    "</div>"
+  end
+
   def functions_overview_html(row, path)
     if functions(row).count > 0
       html = "<hr /><h2 id=\"functions\">Functions</h2>\n"
@@ -235,7 +264,13 @@ class HtmlOutput < Output
     if info
       href = relative(current_path, info['path'])
       href << ".html#"
-      href << (info['define'] ? "d" : "t")
+      if info["'typedef'"] == 'define'
+        href << 'd'
+      elsif info["'typedef'"] == 'typedef'
+        href << 't'
+      elsif info["'typedef'"] == 'struct'
+        href << 's'
+      end
       href << info['id'].to_s
       link(href, type)
     else

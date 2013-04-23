@@ -30,6 +30,14 @@ class Input
     @files_stmt = @db.prepare(
       "SELECT id, path FROM files WHERE path LIKE ?"
     )
+    @su_stmt = @db.prepare(
+      "INSERT INTO structs_unions (file_id, su, type, docstring)
+       VALUES (?, ?, ?, ?)"
+    )
+    @element_stmt = @db.prepare(
+      "INSERT INTO elements (su_id, type, name, is_func, docstring)
+       VALUES (?, ?, ?, ?, ?)"
+    )
     @include_stmt = @db.prepare(
       "INSERT INTO includes (file_id, include_id) VALUES (?, ?)"
     )
@@ -42,6 +50,20 @@ class Input
     tree.variables.each do |variable|
       print "Found variable #{variable.Name} with type #{variable.Type}\n" if @options[:verbose]
       @var_stmt.execute(file_id, variable.Name, variable.Type, variable.docstring[:text])
+    end
+
+    tree.structs_unions.each do |sus|
+      print "Found #{sus.struct_or_union} definition #{sus.Type}\n" if @options[:verbose]
+      @su_stmt.execute(file_id, sus.struct_or_union, sus.raw_type, sus.docstring[:text])
+      su_id = @db.last_insert_row_id
+
+      sus.definition.each do |defn|
+        if defn.variable?
+          @element_stmt.execute(su_id, defn.Type, defn.Name, 0, defn.docstring[:text])
+        elsif defn.function?
+          @element_stmt.execute(su_id, defn.prototype[:type], defn.prototype[:name], 1, defn.docstring[:text])
+        end
+      end
     end
 
     tree.functions.each do |function|

@@ -33,7 +33,7 @@ grammar CSimple
   rule struct_union_declaration
     docstring? _
     su WHITESPACE name
-    struct_union_definition?
+    struct_union_definitions?
     name?
     SEMICOLON
     <StructUnionNode>
@@ -43,18 +43,25 @@ grammar CSimple
     'struct' <SUNode> / 'union' <SUNode>
   end
 
-  rule struct_union_definition
+  rule struct_union_definitions
     LEFTCURLY
-    (
-      (
-        type name ( _ COLON (name / value))?
-        / function_prototype
-      ) SEMICOLON
-      / docstring _
-      / comment _
-    )+
+    (struct_union_definition <StructUnionDefinitionNode>)+
     RIGHTCURLY
-    <StructUnionDefinitionNode>
+    <StructUnionDefinitionsNode>
+  end
+  rule struct_union_definition
+    function
+    / struct_variable
+    / docstring _
+    / comment _
+  end
+
+  rule struct_variable
+    docstring?
+    type name
+    ( _ COLON (name / value))?
+    SEMICOLON
+    <VariableNode>
   end
 
   rule variable

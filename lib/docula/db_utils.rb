@@ -59,6 +59,25 @@ class DBUtils
         FOREIGN KEY(file_id) REFERENCES files (id) ON DELETE CASCADE)"
     )
     db.execute(
+      "CREATE TABLE IF NOT EXISTS structs_unions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        file_id INTEGER NOT NULL,
+        su TEXT NOT NULL,
+        type TEXT NOT NULL,
+        docstring TEXT,
+        FOREIGN KEY(file_id) REFERENCES files (id) ON DELETE CASCADE)"
+    )
+    db.execute(
+      "CREATE TABLE IF NOT EXISTS elements (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        su_id INTEGER NOT NULL,
+        type TEXT NOT NULL,
+        name TEXT NOT NULL,
+        is_func INTEGER NOT NULL DEFAULT 0,
+        docstring TEXT,
+        FOREIGN KEY(su_id) REFERENCES structs_unions (id) ON DELETE CASCADE)"
+    )
+    db.execute(
       "CREATE TABLE IF NOT EXISTS includes (
         file_id INTEGER NOT NULL,
         include_id INTEGER NOT NULL,
