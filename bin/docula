@@ -69,7 +69,9 @@ Dir.recurse(options[:directory]) do |file|
     path = Pathname.new(file).relative_path_from(pwd).to_s
     print "Parsing #{path} with #{parsers[File.extname(file)]}... " if options[:verbose]
 
-    contents = File.read(file)
+    # This is disgusting, and frankly I'm ashamed, but it seems to be the only
+    # way to remove invalid stuff from the strings.
+    contents = File.read(file).encode('UTF-16le', :invalid => :replace, :replace => '').encode('UTF-8')
     hash = Digest::MD5.hexdigest(contents)
 
     fhash = file_chk_stmt.execute(path)

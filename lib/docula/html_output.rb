@@ -55,20 +55,20 @@ class HtmlOutput < Output
 
     if row['docstring'] != ""
       file_html << "<div id=\"summary\">\n<h2>Summary</h2>\n"
-      file_html << "#{row['docstring'].split("\n")[0]}\n"
+      file_html << "#{row['docstring'].split("\n\n")[0]}\n"
       file_html << "<br />#{link("#description", "Read More")}</div>\n"
     end
 
     file_html << includes_html(row['id'], row['path'])
-    file_html << defines_html(row['id'])
-    file_html << typedefs_html(row['id'])
     file_html << functions_overview_html(row['id'], row['path'])
     file_html << variables_html(row['id'], row['path'])
+    file_html << defines_html(row['id'])
+    file_html << typedefs_html(row['id'])
     file_html << structs_html(row['id'], row['path'])
 
     if row['docstring'] != ""
       file_html << "<hr />\n<h2 id=\"description\">Description</h2>\n"
-      file_html << "#{row['docstring']}"
+      file_html << "#{row['docstring'].para}"
     end
 
     file_html << functions_html(row['id'], row['path'])
@@ -154,31 +154,35 @@ class HtmlOutput < Output
   end
 
   def structs_html(id, path)
-    "<hr /><h2 id=\"structs\">structs &amp; unions</h2><div id=\"fdefs\">\n" <<
-    "<div>" <<
-    structs_unions(id).map do |su|
-      "<table>" <<
-      row_with_id(
-        "s#{su['id']}",
-        su['su'],
-        su['type'],
-        "{"
-      ) <<
-      elements(su['id']).map do |elem|
+    if (structs = structs_unions(id)).count > 0
+      "<hr /><h2 id=\"structs\">structs &amp; unions</h2><div id=\"fdefs\">\n" <<
+      "<div>" <<
+      structs.map do |su|
+        "<table>" <<
+        row_with_id(
+          "s#{su['id']}",
+          su['su'],
+          su['type'],
+          "{"
+        ) <<
+        elements(su['id']).map do |elem|
+          row(
+            "", "", "",
+            formatted_type(elem['type'], path),
+            elem['name']
+          )
+        end.join("\n") <<
         row(
-          "", "", "",
-          formatted_type(elem['type'], path),
-          elem['name']
-        )
+          "", "",
+          "}"
+        ) <<
+        "</table></div>" <<
+        (su['docstring'].nil? ? "" : su['docstring'])
       end.join("\n") <<
-      row(
-        "", "",
-        "}"
-      ) <<
-      "</table></div>" <<
-      su['docstring']
-    end.join("\n") <<
-    "</div>"
+      "</div>"
+    else
+      ""
+    end
   end
 
   def functions_overview_html(row, path)
@@ -212,7 +216,7 @@ class HtmlOutput < Output
   def functions_html(row, path)
     "<hr /><h2 id=\"\">Function Documentation</h2>\n<div id=\"fdefs\">" <<
     functions(row).map do |function|
-      html = "<div id=\"f#{function['id']}\"><table><tbody><tr>"
+      html = "<div id=\"f#{function['id']}\" class=\"fdef\"><table><tbody><tr>"
       html << "<td>#{formatted_type(function['type'], path)}</td>"
       html << "<td>#{function['name']}</td>"
       html << "<td>(</td>"
@@ -222,7 +226,10 @@ class HtmlOutput < Output
       end.join("</tr>\n<tr><td></td><td></td><td></td><td></td><td></td>")
 
       html << "</tr>\n<tr><td></td><td></td><td>)</td></tr></tbody></table>"
-      html << "<span class=\"docstring\">#{function['docstring']}</span>"
+      if function['docstring']
+        html << "<span class=\"docstring\"><span class=\"bf\">Documentation:</span>\n"
+        html << "#{function['docstring'].para}</span>"
+      end
 
       if arguments(function['id']).count > 0
         html << "<br /><span class=\"arguments\"><span class=\"bf\">Arguments:</span>\n<dl>"
@@ -242,7 +249,7 @@ class HtmlOutput < Output
         html << "<br /><span class=\"returns\"><span class=\"bf\">Returns:</span>\n#{function['return']}</span>"
       end
 
-      if (equiv = equiv_function(function['id']))
+      unless (equiv = equiv_function(function['id'])).empty?
         html << "<span class=\"also\"><span class=\"bf\">See also:</span>\n"
         html << equiv.map { |e| func_by_id(e, path) }.join(', ') << "</span>"
       end
@@ -363,7 +370,7 @@ class HtmlOutput < Output
       margin-bottom: 1em;
       padding: 0.25em;
     }
-    div#fdefs div:nth-child(even) {
+    div#fdefs .fdef:nth-child(even) {
       background-color: #{@@base2};
     }
     table {

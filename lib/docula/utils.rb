@@ -21,4 +21,8 @@ class String
   def unindent
     gsub(/^#{scan(/^\s*/).min_by{|l|l.length}}/, "")
   end
+
+  def para
+    "<p>#{split("\n\n").join('</p><p>')}</p>"
+  end
 end

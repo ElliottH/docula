@@ -7,6 +7,14 @@
  * @license MIT
  */
 
+/**
+ * O HAI
+ */
+struct magic {
+    int foo;
+    int bar;
+    int (* baz)(int bob);
+} test;
 
 /**
  * The most important #define ever written.

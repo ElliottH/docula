@@ -37,20 +37,36 @@ module CSimple
   module NameAndType
     # Excuse the capitals, I need to avoid clashing with 'name' and 'type'
     def Name
-      elements.detect do |elem|
+      name = elements.detect do |elem|
         elem.class == CSimple::NameNode
-      end.text_value.gsub(/\*+/, "").strip
+      end
+      if name
+        name.text_value.gsub(/\*+/, '').strip
+      else
+        ''
+      end
     end
     def Type
       type = elements.detect do |elem|
         elem.class == CSimple::TypeNode
-      end.text_value.strip
+      end
+      if type
+        type = type.text_value.strip
+      else
+        type = ''
+      end
 
-      stars = elements.detect do |elem|
+      name = elements.detect do |elem|
         elem.class == CSimple::NameNode
-      end.text_value.match(/(\*)+/).to_s
+      end
 
-      return type + stars
+      if name
+        stars = name.text_value.match(/(\*)+/).to_s
+      else
+        stars = ''
+      end
+
+      type + stars
     end
   end
 
@@ -160,15 +176,17 @@ module CSimple
     include Documentable
 
     def include?
-      text_value.include? "#include"
+      #text_value.include? "#include"
+      text_value.index(/^#include\s+/) != nil
     end
 
     def includes
-      text_value.match(/#include\s+(?:<|")?(.*?)(?:>|")?/).captures.first
+      text_value.match(/#include\s+(?:<|")?(.*?)(?:>|")?$/).captures.first
     end
 
     def define?
-      text_value.include? "#define"
+      #text_value.include? "#define"
+      text_value.index(/^#define/) != nil
     end
 
     def defines
