@@ -46,6 +46,7 @@ OptionParser.new do |o|
           "  (#{outputs.keys.join(", ")})") do |format|
     options[:format] = format
   end
+  o.on_tail('-t', '--time', 'Display timing information.') { |t| options[:timing] = t }
   o.on_tail('-h', '--help', 'Output this help and exit.') { puts o; exit }
   o.on('-v', '--verbose', 'Run verbosely') { |v| options[:verbose] = v }
   o.parse!
@@ -68,14 +69,18 @@ fail_exist_stmt = db.prepare("UPDATE files_failed SET exist = 1 WHERE hash = ?")
 db.execute("UPDATE files SET exist = 0")
 db.execute("UPDATE files_failed SET exist = 0")
 input = Input.new(db, options)
+timing = { :start => Time.now, :count => 0, :success => 0, :cached => 0 }
 Dir.recurse(options[:directory]) do |file|
   if parsers[File.extname(file)]
+    timing[:count] += 1 if options[:timing]
     path = Pathname.new(file).relative_path_from(pwd).to_s
     print "Parsing #{path} with #{parsers[File.extname(file)]}... " if options[:verbose]
+    timing[file] = { :start => Time.now } if options[:timing]
 
     # This is disgusting, and frankly I'm ashamed, but it seems to be the only
     # way to remove invalid stuff from the strings.
     contents = File.read(file).encode('UTF-16le', :invalid => :replace, :replace => '').encode('UTF-8')
+    timing[file][:lines] = contents.lines.count if options[:timing]
     hash = Digest::MD5.hexdigest(contents)
 
     fhash = file_chk_stmt.execute(path, path)
@@ -85,11 +90,16 @@ Dir.recurse(options[:directory]) do |file|
       parser = parsers[File.extname(file)].new
       begin
         tree = parser.parse(contents)
+        timing[file][:parsed] = Time.now if options[:timing]
         if tree
+          timing[file][:success] = true if options[:timing]
+          timing[:success] += 1 if options[:timing]
           print "Success!\n" if options[:verbose]
           file_ins_stmt.execute(path, hash, tree.docstrings.map { |doc| doc.strip }.join("\n"))
           input.parse(tree, db.last_insert_row_id)
         else
+          timing[file][:success] = false if options[:timing]
+          timing[file][:failure_line] = parser.failure_line if options[:timing]
           print "Failed!\n#{parser.failure_reason}\n" if options[:verbose]
           print "Failed to parse #{path} with #{parsers[File.extname(file)]}!\n" unless options[:verbose]
           fail_ins_stmt.execute(path, hash)
@@ -98,17 +108,51 @@ Dir.recurse(options[:directory]) do |file|
         print "Failed!\n#{e.to_s}"
       end
     else
+      timing[:cached] += 1
       print "Using cached values.\n" if options[:verbose]
     end
     if row
       file_exist_stmt.execute(row['hash'])
       fail_exist_stmt.execute(row['hash'])
     end
+    timing[file][:done] = Time.now if options[:timing]
   end
 end
 db.execute("DELETE FROM files WHERE exist = 0")
 db.execute("DELETE FROM files_failed WHERE exist = 0")
+timing[:done] = Time.now if options[:timing]
 input.post_process
-
+timing[:post] = Time.now if options[:timing]
 output = options[:format].new(db, options)
 output.output
+timing[:output] = Time.now if options[:timing]
+
+if options[:timing]
+  results = timing.select { |k,_| k.class == String }.map do |k,v|
+    result = {
+        :total => v[:done] - v[:start],
+        #:parsing => v[:parsed] - v[:start],
+        #:processed => v[:done] - v[:parsed]
+      }
+    if v[:success]
+      result
+    else
+      percent = v[:failure_line] ? (v[:failure_line] / v[:lines].to_f) : 1
+      result = {
+        :actual_total => result[:total],
+        #:actual_parsing => result[:parsing],
+        #:actual_processed => result[:processed],
+        :percent => percent,
+        :total => result[:total] + result[:total] * (1 - percent),
+        #:parsing => result[:total] + result[:parsing] * (1 - percent),
+        #:processed => result[:processed] + result[:processed] * (1 - percent)
+      }
+    end
+  end
+  puts <<-eos
+  Timing info:
+    Execution took #{timing[:output] - timing[:start]} seconds.
+    Parsed #{timing[:count]} files, #{timing[:success]} successfully (#{timing[:cached]} cached).
+    Projected execution time: #{timing[:output] - timing[:done] + results.map {|x| x[:total]}.reduce(:+)}
+  eos
+end
