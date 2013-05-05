@@ -58,11 +58,15 @@ Dir.mkdir(".docula") unless File.directory?(".docula")
 db = SQLite3::Database.new(".docula/db.sqlite")
 DBUtils.setup(db)
 file_chk_stmt = db.prepare("SELECT hash, id FROM files WHERE path = ?")
+file_chk_stmt = db.prepare("SELECT hash, id FROM files WHERE path = ? UNION ALL SELECT hash, id FROM files_failed WHERE path = ?")
 file_ins_stmt = db.prepare("INSERT INTO files (path, hash, docstring) VALUES (?, ?, ?)")
+fail_ins_stmt = db.prepare("INSERT INTO files_failed (path, hash) VALUES (?, ?)")
 file_del_stmt = db.prepare("DELETE FROM files WHERE path = ?")
-file_exist_stmt = db.prepare("UPDATE files SET exist = 1 WHERE id = ?")
+file_exist_stmt = db.prepare("UPDATE files SET exist = 1 WHERE hash = ?")
+fail_exist_stmt = db.prepare("UPDATE files_failed SET exist = 1 WHERE hash = ?")
 
 db.execute("UPDATE files SET exist = 0")
+db.execute("UPDATE files_failed SET exist = 0")
 input = Input.new(db, options)
 Dir.recurse(options[:directory]) do |file|
   if parsers[File.extname(file)]
@@ -74,7 +78,7 @@ Dir.recurse(options[:directory]) do |file|
     contents = File.read(file).encode('UTF-16le', :invalid => :replace, :replace => '').encode('UTF-8')
     hash = Digest::MD5.hexdigest(contents)
 
-    fhash = file_chk_stmt.execute(path)
+    fhash = file_chk_stmt.execute(path, path)
     row = fhash.next
     if row == nil || row['hash'] != hash || options[:force]
       file_del_stmt.execute(path)
@@ -88,6 +92,7 @@ Dir.recurse(options[:directory]) do |file|
         else
           print "Failed!\n#{parser.failure_reason}\n" if options[:verbose]
           print "Failed to parse #{path} with #{parsers[File.extname(file)]}!\n" unless options[:verbose]
+          fail_ins_stmt.execute(path, hash)
         end
       rescue ArgumentError => e
         print "Failed!\n#{e.to_s}"
@@ -95,11 +100,14 @@ Dir.recurse(options[:directory]) do |file|
     else
       print "Using cached values.\n" if options[:verbose]
     end
-    file_exist_stmt.execute(row['id']) if row
+    if row
+      file_exist_stmt.execute(row['hash'])
+      fail_exist_stmt.execute(row['hash'])
+    end
   end
 end
 db.execute("DELETE FROM files WHERE exist = 0")
-
+db.execute("DELETE FROM files_failed WHERE exist = 0")
 input.post_process
 
 output = options[:format].new(db, options)
