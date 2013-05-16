@@ -106,7 +106,10 @@ class HtmlOutput < Output
 
       defines(row).each do |define|
         html << row_with_id("d#{define['id']}", define['name'], define['value'])
-        html << row("", define['docstring'])
+        html << row_with_id(
+                  def_id(define, 'd'),
+                  "", define['docstring']
+                )
       end
 
       html << "</tbody></table>\n"
@@ -123,7 +126,10 @@ class HtmlOutput < Output
 
       typedefs(row).each do |typedef|
         html << row_with_id("t#{typedef['id']}", typedef['name'], typedef['value'])
-        html << row("", typedef['docstring'])
+        html << row_with_id(
+                  def_id(typedef, 't'),
+                  typedef['docstring']
+                )
       end
 
       html << "</tbody></table>\n"
@@ -144,7 +150,9 @@ class HtmlOutput < Output
                   formatted_type(variable['type'], path),
                   variable['name']
                 )
-        html << row("", variable['docstring'])
+        html << row_with_id(
+                  def_id(variable, 'v'),
+                  "", variable['docstring'])
       end
 
       html << "</tbody></table>\n"
@@ -313,6 +321,14 @@ class HtmlOutput < Output
           <title>#{title}</title>
         </head>
     eos
+  end
+
+  def def_id(item, char)
+    if item['docstring'].nil? || item['docstring'] == ""
+      ""
+    else
+      "#{char}#{item['id']}_def"
+    end
   end
 
   @@base03  = "#002b36"
